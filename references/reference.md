@@ -54,6 +54,7 @@ After submit-classification, call request-oor to retrieve this proposal for the 
 | 400 | Bad request (e.g. missing jobId, missing confirmed/feedback, invalid proposedClassification) | Use promptForUser or error to inform the user; fix the request and retry. Response may include validationErrors: [{ field, message }] (e.g. field "eccnOrClassification", "justification", "confirmed_or_feedback"). Do not report success. |
 | 402 | First free already used; payment required | Do not auto-pay. Ask user how they want to pay; only after confirmation call paid start. Response may include nextStep: "payment_required", requiredAction: "pay_start", paymentAmount, paymentEndpoint. |
 | 404 | Job not found | Tell user the session expired or is invalid; start a new classification (start-free first). |
+| 502 | Bad Gateway (API down, timeout, or unreachable) | Tell user the API appears down or overloaded; no payment was taken. Suggest checking api.exchek.us or /health and retrying later, or contacting ExChek support. |
 | 500 | Server error (jurisdiction, OOR, or refinement failed) | Use promptForUser if present; otherwise tell user something went wrong and they can retry or start over. |
 | 503 | Regulatory data (eCFR) temporarily unavailable | Use promptForUser to tell user to try again later; optionally retry once. |
 

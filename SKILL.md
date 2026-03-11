@@ -58,6 +58,7 @@ For every API response that is not 200, use the response body to inform the user
 - **400** — Use `promptForUser` or `error` to inform the user what is wrong. Fix the request (e.g. add jobId, send confirmed or feedback, or fix proposedClassification) and retry. Do not report success.
 - **402** — Do not auto-pay. Ask the user how they want to pay; only after they confirm, call the paid start. Only consider the job started when you get 200 with a jobId. The response may include `nextStep: "payment_required"` or `requiredAction: "pay_start"` for machine use.
 - **404** — Tell the user the session expired or is invalid. Start a new classification (call start-free first, then continue).
+- **502** — Gateway or API unreachable (e.g. server down, timeout). Tell the user the API appears to be down or overloaded; no payment was taken. Suggest checking api.exchek.us or the /health endpoint and retrying later, or contacting ExChek support.
 - **503** — Use `promptForUser` to tell the user eCFR is temporarily unavailable and to try again later. Optionally retry once after a short delay.
 - **500** — Use `promptForUser` from the response if present; otherwise tell the user something went wrong and they can retry or start over.
 
