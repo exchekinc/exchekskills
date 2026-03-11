@@ -38,5 +38,5 @@ Response includes `jobId`, `nextStep`, `promptForUser`. Use the same `jobId` in 
 
 ## Reference
 
-- API and flow details: [reference.md](reference.md)
+- API and flow details: [references/reference.md](references/reference.md)
 - Docs: https://docs.exchek.us

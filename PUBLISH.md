@@ -11,9 +11,9 @@ This folder is the **ExChek Claude skill**. To let anyone install it with one cl
 ### Option A — Copy and push (simplest)
 
 ```bash
-# From exchekinc repo root
+# From exchekinc repo root (copies SKILL.md, README.md, PUBLISH.md, references/)
 mkdir -p /tmp/exchek-skill-pub
-cp exchek-skill/* /tmp/exchek-skill-pub/
+cp -r exchek-skill/. /tmp/exchek-skill-pub/
 cd /tmp/exchek-skill-pub
 git init
 git add .

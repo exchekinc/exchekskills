@@ -1,6 +1,6 @@
 # ExChek Claude Skill
 
-This repository contains the **ExChek classification skill** for Claude Code (and compatible Claude environments). Install this skill so Claude can classify export items (ECCN, BIS, ITAR) via the ExChek API with Adjudicator-in-the-Loop.
+This repository contains the **ExChek classification skill** for Claude Code (and compatible Claude environments). The layout follows the [Agent Skills](https://agentskills.io/) standard: `SKILL.md` at the root (required), optional `references/` for API docs. Install so Claude can classify export items (ECCN, BIS, ITAR) via the ExChek API with Adjudicator-in-the-Loop.
 
 - **API**: https://api.exchek.us  
 - **Docs**: https://docs.exchek.us  
@@ -8,9 +8,9 @@ This repository contains the **ExChek classification skill** for Claude Code (an
 
 ## Install for Claude Code
 
-Add this skill so Claude can use it in any project (personal) or in a single project.
+Claude expects each skill in its own directory with `SKILL.md` inside; the directory name should match the skill name (`exchek-classify`). Clone into that path:
 
-**Option 1 — From the public skill repo (recommended)**
+**Option 1 — From this repo (recommended)**
 
 ```bash
 git clone https://github.com/mrdulasolutions/exchekskill ~/.claude/skills/exchek-classify
