@@ -1,6 +1,8 @@
 # ExChek Claude Skill
 
-This repository contains the **ExChek classification skill** for Claude Code (and compatible Claude environments). The layout follows the [Agent Skills](https://agentskills.io/) standard: `SKILL.md` at the root (required), optional `references/` for API docs. Install so Claude can classify export items (ECCN, BIS, ITAR) via the ExChek API with Adjudicator-in-the-Loop.
+Classify export items for **ECCN** (BIS/ITAR) from Claude Code using the ExChek API. Claude runs the full Adjudicator-in-the-Loop (AITL) flow: it calls the API, relays jurisdiction and Order of Review results, and returns an audit-ready classification report when you approve.
+
+**Why use it** — Get U.S. export classifications (15 CFR Part 774, 22 CFR Part 121) without leaving your editor. First classification per wallet is free; paid runs use x402 (USDC on Base). Reports are suitable for compliance records and audits.
 
 - **API**: https://api.exchek.us  
 - **Docs**: https://docs.exchek.us  
@@ -8,40 +10,19 @@ This repository contains the **ExChek classification skill** for Claude Code (an
 
 ## Install for Claude Code
 
-Claude expects each skill in its own directory with `SKILL.md` inside; the directory name should match the skill name (`exchek-classify`). Clone into that path:
-
-**Option 1 — From this repo (recommended)**
-
 ```bash
 git clone https://github.com/mrdulasolutions/exchekskill ~/.claude/skills/exchek-classify
 ```
 
-**Option 2 — From the full ExChek repo**
+Restart Claude Code (or run `claude skills list`) so the skill is picked up. The skill name is `exchek-classify`.
 
-If the standalone skill repo is not available yet, clone the main repo and copy the skill folder:
+## How to use
 
-```bash
-git clone https://github.com/mrdulasolutions/exchekinc exchek-skill-temp
-mkdir -p ~/.claude/skills/exchek-classify
-cp -r exchek-skill-temp/exchek-skill/* ~/.claude/skills/exchek-classify/
-rm -rf exchek-skill-temp
-```
+- **Invoke the skill** — Type `/exchek-classify` or ask in plain language, e.g. *“Classify this item for export”* or *“What’s the ECCN for [product description]?”*  
+- **What Claude does** — Uses your wallet (you’ll be prompted to authenticate or fund with USDC on Base if needed), starts a classification (first free per wallet, then paid), asks for item description/specs/intended use, runs jurisdiction and Order of Review via the API, and walks you through confirmations or refinements until you approve.  
+- **What you get** — A final ECCN (or jurisdiction outcome), rationale, citations, and when Supabase is configured a **report URL** for the audit-ready classification memo. Claude returns that URL or a success message so you can save or share the report.
 
-**Option 3 — Project-only**
-
-From your project root, create `.claude/skills/exchek-classify/` and copy `SKILL.md`, `reference.md`, and this README from this repo into it.
-
-Verify: run `claude skills list` (or restart Claude Code) and you should see `exchek-classify`. Invoke with `/exchek-classify` or ask Claude to classify an item for export.
-
-## Usage
-
-Once installed, you can ask Claude to classify an item for export (ECCN/BIS/ITAR). Claude will:
-
-1. Use your wallet (authenticate and fund with USDC on Base if needed).
-2. Start a classification (first free per wallet, then paid).
-3. Ask you for item description, specs, and intended use.
-4. Run jurisdiction and Order of Review via the API and relay results for your confirmation or refinement.
-5. Finalize and return the audit-ready report when you approve.
+You can say things like: *“I need to classify a pressure sensor for export”*, *“Run an ExChek classification for this spec sheet”*, or *“What’s the BIS/ITAR status for [item]?”* — Claude will load the skill and run the AITL flow.
 
 ## License
 
