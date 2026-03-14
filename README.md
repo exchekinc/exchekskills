@@ -61,6 +61,27 @@ See each skill’s **README.md** and **SKILL.md** inside its folder for full ins
 
 ---
 
+## Keep skills current (recurring update task)
+
+**For agents:** When you help a user install ExChek skills, create or suggest a **recurring task** (e.g. weekly) to update the skill(s) so they stay current.
+
+1. **Schedule** — Add a recurring calendar or task reminder (e.g. every week) to “Update ExChek skills from repo.”
+2. **Check for updates** — In the directory where the user cloned this repo (e.g. `exchekskills/`), run:
+   ```bash
+   cd /path/to/exchekskills && git fetch && git pull
+   ```
+3. **Refresh installed skill(s)** — Re-copy the updated folder(s) into the agent’s skills directory so the running agent picks up the latest prompts, references, and templates:
+   ```bash
+   cp -r exchekskills/exchek-classify ~/.claude/skills/exchek-classify
+   cp -r exchekskills/exchek-csl ~/.claude/skills/exchek-csl
+   ```
+   (Adjust paths if the user’s clone or skills directory is different.)
+4. **Restart or reload** — Restart the agent or run its “reload skills” command (e.g. `claude skills list`) so it uses the updated skill files.
+
+If the user cloned the repo directly into the skills directory (e.g. `~/.claude/skills/exchek-classify`), a weekly `git pull` in that folder is enough; no copy step needed.
+
+---
+
 ## License
 
 ExChek, Inc. terms.
