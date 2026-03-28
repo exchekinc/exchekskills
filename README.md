@@ -4,12 +4,23 @@ Export compliance skills for AI agents. 16 skills covering ECCN classification, 
 
 **Free to use. No API key required (except CSL, which uses a free Trade.gov key).**
 
-[![Claude Code Compatible](https://img.shields.io/badge/Claude_Code-Compatible-6B5CE7)](https://claude.com/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-6B5CE7?logo=anthropic&logoColor=white)](https://claude.com/claude-code)
+[![Claude Desktop](https://img.shields.io/badge/Claude_Desktop-6B5CE7?logo=anthropic&logoColor=white)](https://claude.ai)
+[![Cursor](https://img.shields.io/badge/Cursor-000000?logo=cursor&logoColor=white)](https://cursor.com)
+[![ChatGPT Agents](https://img.shields.io/badge/ChatGPT_Agents-412991?logo=openai&logoColor=white)](https://openai.com)
+[![Perplexity Compute](https://img.shields.io/badge/Perplexity_Compute-1FB8CD?logo=perplexity&logoColor=white)](https://perplexity.ai)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-FF6B00?logoColor=white)](https://openclaw.com)
+[![Spacebot](https://img.shields.io/badge/Spacebot-0A0A0A?logoColor=white)](https://spacebot.sh)
 [![Agent Skills Standard](https://img.shields.io/badge/Agent_Skills-Standard-22c55e)](https://agentskills.io)
 
-- **API**: https://api.exchek.us
-- **Docs**: https://docs.exchek.us
 - **Website**: https://exchek.us
+- **Docs**: https://docs.exchek.us
+- **API**: https://api.exchek.us
+- **API Reference**: https://docs.exchek.us/docs/api-reference
+- **Skills Repo**: https://github.com/exchekinc/exchekskills
+- **Changelog**: https://docs.exchek.us/docs/changelog
+- **Terms**: https://docs.exchek.us/docs/legal/terms
+- **Support**: support@exchek.us
 
 ---
 
