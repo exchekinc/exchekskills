@@ -60,4 +60,4 @@ If ExChek saves you time, share it. Tell a colleague. Install a skill for a clie
 
 ---
 
-ExChek, Inc., Dover, DE. https://exchek.us | https://docs.exchek.us | support@exchek.us
+ExChek, Inc., Dover, DE. https://exchek.us | https://docs.exchek.us | matt@exchek.us

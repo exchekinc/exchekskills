@@ -20,7 +20,7 @@ Export compliance skills for AI agents. 16 skills covering ECCN classification, 
 - **Skills Repo**: https://github.com/exchekinc/exchekskills
 - **Changelog**: https://docs.exchek.us/docs/changelog
 - **Terms**: https://docs.exchek.us/docs/legal/terms
-- **Support**: support@exchek.us
+- **Support**: matt@exchek.us
 
 ---
 
@@ -189,4 +189,4 @@ See [ETHOS.md](ETHOS.md) for why ExChek exists and what we stand for.
 
 ---
 
-ExChek, Inc., Dover, DE. https://exchek.us | https://docs.exchek.us | support@exchek.us
+ExChek, Inc., Dover, DE. https://exchek.us | https://docs.exchek.us | matt@exchek.us
