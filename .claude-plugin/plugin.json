@@ -1,0 +1,30 @@
+{
+  "name": "exchekskills",
+  "description": "ExChek Skills — 16 export compliance skills for AI agents. ECCN classification, screening, license determination, encryption, jurisdiction, country risk, audit, and more. Free to use.",
+  "version": "2.0.0",
+  "author": {
+    "name": "ExChek, Inc.",
+    "email": "support@exchek.us",
+    "url": "https://exchek.us"
+  },
+  "homepage": "https://docs.exchek.us",
+  "repository": "https://github.com/exchekinc/exchekskills",
+  "license": "Proprietary",
+  "keywords": [
+    "export-compliance",
+    "eccn",
+    "itar",
+    "ear",
+    "classification",
+    "screening",
+    "csl",
+    "license-determination",
+    "encryption",
+    "jurisdiction",
+    "country-risk",
+    "bis",
+    "ddtc",
+    "ofac",
+    "trade-compliance"
+  ]
+}
