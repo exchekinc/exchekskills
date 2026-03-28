@@ -12,7 +12,7 @@ We believe every company that ships a product across a border deserves the same 
 
 ### Free at the point of use
 
-ExChek skills are free. The API is free. No paywall, no trial expiration, no feature gates on compliance basics. Export compliance is a legal obligation, not a luxury. We will never charge for the ability to classify an item, screen a party, or check a regulation.
+The core ExChek skills and API are free. No paywall, no trial expiration, no feature gates on compliance basics. Export compliance is a legal obligation, not a luxury — every business that exports should be able to classify an item, screen a party, or check a regulation without paying for the privilege. That will always be free. For teams that need more — enterprise integrations, premium API endpoints, custom skill development, and dedicated support — we offer paid plans. The free tier gets you compliant. The paid tier gets you scaled.
 
 ### Human-in-the-loop, always
 
