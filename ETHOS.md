@@ -2,7 +2,7 @@
 
 ## Why ExChek exists
 
-Export compliance is hard. It's expensive, opaque, and historically accessible only to companies large enough to staff a full compliance department or retain specialized counsel. Small and mid-size exporters — the ones driving innovation — are left to navigate thousands of pages of federal regulation, dozens of screening lists, and shifting sanctions landscapes on their own.
+Export compliance shouldn't stop your business. But for most small and mid-size companies, it does — or it comes close. The regulations are dense, the stakes are real, and the tools that exist were built for enterprises with six-figure compliance budgets. That leaves the companies actually driving innovation to figure it out alone: thousands of pages of federal regulation, dozens of screening lists, shifting sanctions landscapes, and no one in-house who does this full time.
 
 ExChek exists to change that.
 
@@ -34,9 +34,11 @@ Every skill asks upfront whether the information involves Controlled Unclassifie
 
 ExChek skills follow the Agent Skills open standard. They work in Claude Code, Cursor, Claude Desktop, and any agent platform that supports the standard. We do not lock skills to a single vendor. Compliance tooling should be portable.
 
-### Built for the compliance professional
+### Built for the SMB owner who can't afford not to comply
 
-ExChek is not built for developers who happen to do compliance. It's built for compliance professionals who happen to use AI. The workflows mirror real export compliance processes: jurisdiction determination, ECCN classification, license determination, denied party screening, red flag assessment, recordkeeping. If you've done this work manually, ExChek feels familiar — just faster.
+ExChek was built for the small and mid-size business owner who knows they need export compliance but can't afford $100K+ salaries for dedicated compliance staff or five-figure enterprise software licenses. You shouldn't have to choose between growing your business and following the law.
+
+ExChek also exists to bridge the gap between enforcement agencies and the businesses they regulate. BIS, DDTC, and OFAC publish the rules — but the burden of understanding and applying those rules falls on companies that were never given the tools to do it. ExChek fills that gap: the same workflows that compliance professionals use (jurisdiction, classification, screening, license determination, recordkeeping), delivered through AI so that any business owner, ops lead, or freight forwarder can run them without a law degree or a dedicated compliance department.
 
 ## What ExChek is not
 
