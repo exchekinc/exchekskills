@@ -1,0 +1,16 @@
+# ExChek Document Converter Skill manifest
+# Used by agents and tools for discovery; SKILL.md holds full instructions.
+
+name: exchek-docx
+description: Convert ExChek markdown reports to client-ready Word (.docx) and provide prompt-style document output guidelines for agents in any environment (Claude, Perplexity, ChatGPT, etc.) so they can produce client-ready output with or without the converter script.
+compatibility:
+  - Claude Code
+  - Claude desktop
+  - Claude CoWork
+  - Claude web
+  - Cursor
+  - Perplexity
+  - ChatGPT
+
+version: "1"
+main: SKILL.md
