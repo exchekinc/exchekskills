@@ -32,17 +32,25 @@ Using ExChek does not create regulatory risk — failing to use any compliance t
 
 Every output is designed to be retained as a compliance record. Reports follow federal recordkeeping requirements (15 CFR 762, 22 CFR 122). Every report includes an AI tool disclosure section so auditors and counsel know exactly what was used and how. Transparency is not optional.
 
+This matters when it matters most — during an audit, a voluntary self-disclosure, or an enforcement action. BIS's Penalty Guidelines (Supplement No. 1 to 15 CFR Part 766) treat the existence of documented compliance procedures as a mitigating factor. OFAC's Framework requires that internal controls "keep records pertaining to activity." ExChek reports are built to satisfy both. Every report captures: what was analyzed, what data sources were used, what the AI recommended, what the human decided, and when. If an auditor or enforcement agent asks "show me your work," you can.
+
 ### Regulation as source of truth
 
 ExChek skills pull regulatory data from the Electronic Code of Federal Regulations (eCFR), BIS tools, and official government APIs. We do not paraphrase, summarize, or editorialize the law. When a skill cites a regulation, the citation is traceable to a specific CFR section. When a skill uses screening data, it comes from the official Trade.gov Consolidated Screening List API.
+
+The ExChek API refreshes regulatory snapshots daily from the eCFR Versioner API and serves them with Cache-Control headers and staleness metadata so you always know how current the data is. If the ExChek API is unavailable, every skill includes fallback instructions to query the eCFR directly — no single point of failure. We do not train models on regulatory text or generate synthetic regulation. The data is the data. The CFR is the CFR.
 
 ### CUI and classified awareness
 
 Every skill asks upfront whether the information involves Controlled Unclassified Information (CUI) or classified material. If it does, the skill stops and directs the user to on-premises infrastructure with a local LLM. We do not process sensitive government data through cloud APIs. This is a hard boundary.
 
+This is not a checkbox — it's a gate. The CUI check runs before any data collection, API calls, or analysis begins. If the user says "yes" or "don't know," the skill halts and provides guidance on running ExChek on-premises with a local model (e.g., Ollama on Apple Silicon). No data leaves the user's machine. No cloud API is called. No exception. ExChek was designed from the start to be deployable in air-gapped, on-premises, and classified environments where cloud access is prohibited. See our [CUI/Classified documentation](https://docs.exchek.us/docs/cui-classified) for deployment guidance.
+
 ### Open skills, open standards
 
-ExChek skills follow the Agent Skills open standard. They work in Claude Code, Cursor, Claude Desktop, and any agent platform that supports the standard. We do not lock skills to a single vendor. Compliance tooling should be portable.
+ExChek skills follow the [Agent Skills](https://agentskills.io) open standard. They work in Claude Code, Claude Desktop, Cursor, ChatGPT Agents, Perplexity Compute, OpenClaw, Spacebot, and any agent platform that supports the standard. We do not lock skills to a single vendor. Compliance tooling should be portable.
+
+This means your compliance workflows are not trapped in a SaaS dashboard you can't leave. If you switch agent platforms, your ExChek skills come with you. If a new platform emerges next year, ExChek works there too. We publish skills as structured markdown with YAML metadata — no compiled binaries, no proprietary runtimes, no vendor lock-in. Your compliance program should outlast any single tool.
 
 ### Built for the SMB owner who can't afford not to comply
 
@@ -52,10 +60,11 @@ ExChek also exists to bridge the gap between enforcement agencies and the busine
 
 ## What ExChek is not
 
-- **Not legal advice.** ExChek outputs are assistive. They do not replace counsel.
-- **Not a filing service.** ExChek prepares documents and data. It does not submit AES filings, BIS notifications, or DDTC registrations.
-- **Not a classification authority.** Only BIS (via CCATS) and DDTC (via CJ request) can issue binding classifications. ExChek helps you prepare — the government decides.
-- **Not a replacement for your compliance program.** ExChek is a tool within your program, not the program itself.
+- **Not legal advice.** ExChek outputs are assistive. They do not replace counsel. If you are facing an enforcement action, voluntary self-disclosure, or complex jurisdictional question, retain qualified export control counsel. ExChek can help you prepare materials for that conversation — it cannot have it for you.
+- **Not a filing service.** ExChek prepares documents and data. It does not submit AES filings, BIS notifications, DDTC registrations, or OFAC license applications. Prep only — no filing, no submission, no signatures.
+- **Not a classification authority.** Only BIS (via CCATS) and DDTC (via CJ request) can issue binding classifications. ExChek helps you prepare the analysis and documentation — the government decides.
+- **Not a replacement for your compliance program.** ExChek is a tool within your program, not the program itself. BIS's [Eight Elements](https://www.bis.gov/learn-support/export-compliance-programs/export-compliance-toolkit/best-practices) and OFAC's [Framework](https://ofac.treasury.gov/media/16331/download?inline=) require management commitment, risk assessments, training, audits, and violation management — ExChek supports these elements but does not replace the organizational commitment behind them.
+- **Not a data broker.** ExChek does not collect, store, or sell your compliance data. Reports are generated locally in your agent environment. The API serves public regulatory data. We do not have access to your classification memos, screening results, or business information.
 
 ## Who we serve
 
