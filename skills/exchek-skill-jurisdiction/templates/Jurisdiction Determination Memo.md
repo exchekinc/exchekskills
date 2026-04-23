@@ -53,13 +53,17 @@
 
 ---
 
-## Section 5 — AI tool disclosure
+## Section 5 — AI Tool Usage & Regulatory Currency Disclosure
+
+This section must follow the canonical format in `references/ai-disclosure-and-currency.md`. Every placeholder defined there (skill name/version/commit, model ID, platform, generation timestamp, input hash, privacy-settings attestation tier/attester/time, eCFR pull timestamps, external-list timestamps, prompt-injection/integrity log, regulatory-drift caveat, HITL confirmation timestamp, JSON-sibling filename) must be filled at report generation time.
 
 | Field | Details |
 |-------|---------|
 | **Tool name and version** | ExChek Jurisdiction (exchek-jurisdiction) |
 | **Human review** | This jurisdiction determination is assistive only. Final jurisdiction is the responsibility of the user and their legal or compliance counsel. |
 | **AI reliance limitation** | The recommendation was generated with AI assistance. It should be reviewed and approved by a qualified human before reliance. When in doubt, recommend a Commodity Jurisdiction request to DDTC per 22 CFR § 120.4. |
+
+*See `references/ai-disclosure-and-currency.md` for the full canonical disclosure block including privacy attestation, regulatory currency, prompt-injection log, HITL confirmation timestamp, and the machine-readable JSON sibling reference.*
 
 ---
 

@@ -1,14 +1,23 @@
 #!/usr/bin/env node
 /**
- * Convert an ExChek markdown report (.md) to client-ready Word (.docx).
+ * Convert an ExChek markdown report (.md) to client-ready Word (.docx),
+ * and emit a structured JSON sibling (<basename>.json) for downstream
+ * CRM/SIEM/GRC ingestion. See references/json-output-schema.md (v1.0.0)
+ * in any ExChek skill for the canonical schema.
+ *
  * Canonical implementation — single source of truth for all ExChek skills.
- * Usage: node md-to-docx.mjs <path-to-report.md>
- * Output: <path-to-report.docx> in the same directory.
+ * Usage: node report-to-docx.mjs <path-to-report.md> [metadata.json]
+ *   <path-to-report.md>   — markdown report (required)
+ *   [metadata.json]       — optional structured metadata per json-output-schema.md.
+ *                           When provided, it is merged with report-path fields
+ *                           and written as <basename>.json next to the .docx.
+ *                           When omitted, a minimal stub JSON sibling is written.
+ * Output: <path-to-report.docx> AND <path-to-report.json> in the same directory.
  * Requires: npm install (in this scripts folder) first.
  */
 
-import { readFileSync, writeFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { resolve, dirname, basename } from "path";
 import { fileURLToPath } from "url";
 import {
   Document,
@@ -319,10 +328,54 @@ function buildDocument(blocks) {
   });
 }
 
+const SCHEMA_VERSION = "1.0.0";
+
+/**
+ * Build the JSON sibling payload. If `metadataPath` is provided and exists,
+ * load and merge it; otherwise emit a minimal stub. In all cases the
+ * `schema_version`, `generated.at`, and `report` fields are populated from
+ * the converter so a sibling always exists for downstream consumers.
+ */
+function buildJsonSibling(metadataPath, docxOutPath) {
+  const docxBase = basename(docxOutPath).replace(/\.docx$/i, "");
+  const docxFile = basename(docxOutPath);
+  const nowIso = new Date().toISOString();
+
+  let payload = {};
+  if (metadataPath) {
+    const resolvedMeta = resolve(process.cwd(), metadataPath);
+    if (!existsSync(resolvedMeta)) {
+      throw new Error(`Metadata file not found: ${resolvedMeta}`);
+    }
+    const raw = readFileSync(resolvedMeta, "utf8");
+    try {
+      payload = JSON.parse(raw);
+    } catch (e) {
+      throw new Error(`Metadata file is not valid JSON: ${resolvedMeta} — ${e.message}`);
+    }
+    if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+      throw new Error(`Metadata must be a JSON object at the top level: ${resolvedMeta}`);
+    }
+  }
+
+  if (!payload.schema_version) payload.schema_version = SCHEMA_VERSION;
+  if (!payload.generated || typeof payload.generated !== "object") payload.generated = {};
+  if (!payload.generated.at) payload.generated.at = nowIso;
+
+  payload.report = {
+    ...(payload.report || {}),
+    docx_basename: docxBase,
+    docx_path_relative: docxFile,
+  };
+
+  return payload;
+}
+
 async function main() {
   const mdPath = process.argv[2];
+  const metadataPath = process.argv[3];
   if (!mdPath) {
-    console.error("Usage: node md-to-docx.mjs <path-to-report.md>");
+    console.error("Usage: node report-to-docx.mjs <path-to-report.md> [metadata.json]");
     process.exit(1);
   }
 
@@ -342,6 +395,16 @@ async function main() {
   const outPath = resolved.replace(/\.md$/i, ".docx");
   writeFileSync(outPath, buffer);
   console.log("Wrote:", outPath);
+
+  const jsonOutPath = resolved.replace(/\.md$/i, ".json");
+  try {
+    const jsonPayload = buildJsonSibling(metadataPath, outPath);
+    writeFileSync(jsonOutPath, JSON.stringify(jsonPayload, null, 2) + "\n");
+    console.log("Wrote:", jsonOutPath);
+  } catch (e) {
+    console.error("JSON sibling not written:", e.message);
+    process.exit(1);
+  }
 }
 
 main().catch((err) => {

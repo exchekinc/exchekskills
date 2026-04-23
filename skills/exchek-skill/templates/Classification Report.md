@@ -264,9 +264,9 @@ This classification analysis follows the three-path methodology authorized under
 
 ---
 
-## Section 9 — AI tool usage disclosure
+## Section 9 — AI Tool Usage & Regulatory Currency Disclosure
 
-*Complete if AI was used in the analysis.*
+This section must follow the canonical format in `references/ai-disclosure-and-currency.md`. Every placeholder defined there (skill name/version/commit, model ID, platform, generation timestamp, input hash, privacy-settings attestation tier/attester/time, eCFR pull timestamps, external-list timestamps, prompt-injection/integrity log, regulatory-drift caveat, HITL confirmation timestamp, JSON-sibling filename) must be filled at report generation time.
 
 | Field | Details |
 |-------|---------|
@@ -277,7 +277,7 @@ This classification analysis follows the three-path methodology authorized under
 | **Human review finding** | {{AI_HUMAN_REVIEW_FINDING}} |
 | **Responsible human reviewer** | {{AI_RESPONSIBLE_REVIEWER}} |
 
-*The AI-generated analysis used in this classification was reviewed and either confirmed or modified by the qualified human analyst identified herein. AI tools were used as a research accelerator only. The legal determination reflected in Section 8 is that of the human reviewer, not the AI tool.*
+*The AI-generated analysis used in this classification was reviewed and either confirmed or modified by the qualified human analyst identified herein. AI tools were used as a research accelerator only. The legal determination reflected in Section 8 is that of the human reviewer, not the AI tool. See `references/ai-disclosure-and-currency.md` for the full canonical disclosure block including privacy attestation, regulatory currency, prompt-injection log, HITL confirmation timestamp, and the machine-readable JSON sibling reference.*
 
 ---
 

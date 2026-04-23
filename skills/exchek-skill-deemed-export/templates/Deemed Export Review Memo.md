@@ -72,13 +72,17 @@
 
 ---
 
-## Section 4 — AI tool disclosure
+## Section 4 — AI Tool Usage & Regulatory Currency Disclosure
+
+This section must follow the canonical format in `references/ai-disclosure-and-currency.md`. Every placeholder defined there (skill name/version/commit, model ID, platform, generation timestamp, input hash, privacy-settings attestation tier/attester/time, eCFR pull timestamps, external-list timestamps, prompt-injection/integrity log, regulatory-drift caveat, HITL confirmation timestamp, JSON-sibling filename) must be filled at report generation time.
 
 | Field | Details |
 |-------|---------|
 | **Tool name and version** | ExChek Deemed Export (exchek-deemed-export) |
 | **Human review** | This memo is assistive only. Final determination of whether a deemed export applies and any license obligation is the responsibility of the designated Export Compliance Officer or legal counsel. |
 | **AI reliance limitation** | The analysis and conclusion were generated with AI assistance. This memo should be reviewed and approved by a qualified human before reliance for compliance decisions. |
+
+*See `references/ai-disclosure-and-currency.md` for the full canonical disclosure block including privacy attestation, regulatory currency, prompt-injection log, HITL confirmation timestamp, and the machine-readable JSON sibling reference.*
 
 ---
 
