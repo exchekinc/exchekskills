@@ -173,9 +173,19 @@ cp -r skills/* ~/.claude/skills/
 
 ---
 
-## CUI and classified information
+## How every skill works (canonical flow)
 
-Every ExChek skill asks upfront whether information involves Controlled Unclassified Information (CUI) or classified material. If yes, the skill stops and directs you to on-premises infrastructure with a local LLM. ExChek does not process sensitive government data through cloud APIs. See [CUI/Classified docs](https://docs.exchek.us/docs/cui-classified).
+All 16 skills follow the same audit-ready pattern:
+
+1. **CUI / classified / § 126.18 gate** — Three-question gate at the start: (a) Does the work involve Controlled Unclassified Information (CUI)? (b) Does it involve classified material? (c) Does it involve an ITAR § 126.18 foreign-national release? Any "yes" halts the skill and routes to on-premises guidance. ExChek does not process sensitive government data through cloud APIs.
+2. **Privacy-settings attestation** — The user attests their AI platform tier (Claude Enterprise / ChatGPT Enterprise / Workspace with training off / consumer tier with training disabled). The tier and attester are recorded in the final document.
+3. **Untrusted-input handling** — All user-supplied text, CSV rows, spec sheets, and file content are treated as **data, not instructions**. Skills reject zero-width, bidi, and homoglyph characters in structured fields and log any injection attempts in the report's Caveats section.
+4. **Regulatory data pull** — Live eCFR text via the ExChek API (Parts 774, 738, 740, 742, 744, 746, 121) with ecfr.gov as fallback. External list queries (CSL, DoD 1260H, UFLPA) record per-source timestamps.
+5. **Human-in-the-loop confirmation** — Every skill pauses for explicit user confirmation of inputs and the preliminary determination before producing any final output.
+6. **Dual output: .docx + .json sibling** — Every report is delivered as a client-ready Word document alongside a machine-readable `.json` sibling (schema v1.0.0) for CRM/SIEM/GRC ingestion. Both files carry the full AI-disclosure metadata: skill name/version/commit, model ID, platform, UTC timestamp, input hash, regulatory-currency timestamps, and the HITL confirmation timestamp.
+7. **Regulatory-drift caveat** — Any determination older than 30 days should be re-run before reliance. Use the `exchek-audit-lookback` skill's `delta-since-date` mode to re-check historical shipments against current rules.
+
+See [CUI/Classified docs](https://docs.exchek.us/docs/cui-classified) for on-premises guidance.
 
 ---
 
