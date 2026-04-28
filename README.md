@@ -1,8 +1,12 @@
 # ExChek Skills
 
-Export compliance skills for AI agents. 16 skills covering ECCN classification, denied party screening, license determination, encryption, jurisdiction, country risk, audit, and more. Works with Claude Code, Claude Desktop, Cursor, and any agent platform supporting the [Agent Skills](https://agentskills.io) open standard.
+Export compliance for the SMB manufacturer who doesn't have a compliance team. 16 skills covering ECCN classification, denied-party screening, license determination, encryption, jurisdiction, country risk, audit, and more, plus a **local-first MCP server** that wraps live U.S. government data sources without calling home.
+
+**Cowork-first**, also runs in Claude Code, Claude Desktop, Cursor, and any agent platform supporting the [Agent Skills](https://agentskills.io) open standard.
 
 **Free to use. No API key required (except CSL, which uses a free Trade.gov key).**
+
+> **v3.0.0 — local-first MCP, slash commands, agents, hooks.** See [CHANGELOG](CHANGELOG.md). The 16 skill bodies still read for compliance professionals; full SMB-voice rewrite is queued for v3.1.0.
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-6B5CE7?logo=anthropic&logoColor=white)](https://claude.com/claude-code)
 [![Claude Desktop](https://img.shields.io/badge/Claude_Desktop-6B5CE7?logo=anthropic&logoColor=white)](https://claude.ai)
@@ -28,14 +32,25 @@ Export compliance skills for AI agents. 16 skills covering ECCN classification, 
 
 ### Option 1: Plugin install (recommended)
 
-Add the ExChek marketplace and install the plugin:
+Add the ExChek marketplace, install, configure:
 
 ```
 /plugin marketplace add github:exchekinc/exchekskills
 /plugin install exchekskills
+/plugin config exchekskills
 ```
 
-All 16 skills are available immediately. Invoke any skill by name (e.g., "Classify this item for export" or "Search the CSL for [name]").
+The config dialog asks for:
+
+| Field | What it is | Required? |
+|---|---|---|
+| **AI platform tier** | Your Cowork/Claude tier (recorded in every report) | Yes — defaults to `cowork-enterprise` |
+| **Trade.gov API key** | Free key from [developer.trade.gov](https://developer.trade.gov), stored in your OS keychain | Only when you screen parties |
+| **Audit-log HMAC key** | Bring-your-own key to seal the local audit log | Optional; auto-generated if blank |
+| **Enable usage telemetry** | Opt-in OTLP spans to your own collector. ExChek never receives them | Defaults to OFF |
+| **Default report folder** | Where finished `.docx` reports land | Defaults to `~/Documents/ExChek-Reports` |
+
+All 16 skills, 5 slash commands, and 2 agents are available immediately. Use the slash commands or just say what you need ("Classify this pressure sensor for export").
 
 ### Option 2: Install individual skills
 
@@ -105,23 +120,59 @@ See each skill's `SKILL.md` for full instructions, flow, references, and templat
 
 ---
 
+## Slash commands
+
+Five top-level slash commands wrap the most common flows:
+
+| Command | What it does |
+|---|---|
+| `/exchek-classify` | Walk through ECCN/USML classification end-to-end, produce a Word memo |
+| `/exchek-screen` | Screen a party against the U.S. Consolidated Screening List |
+| `/exchek-jurisdiction` | Decide BIS (EAR) vs. DDTC (ITAR) for a product |
+| `/exchek-license` | Check whether a license is required for an ECCN to a destination |
+| `/exchek-audit` | Self-audit a CSV of past shipments (dispatches the `exchek-audit-runner` agent) |
+
+## Agents
+
+| Agent | When it runs |
+|---|---|
+| `exchek-audit-runner` | Long CSV audit/lookback jobs (25+ rows). Runs in its own context window. |
+| `exchek-classification-reviewer` | Independent second-opinion review of a draft classification memo. |
+
+---
+
+## Local-first MCP server
+
+`servers/exchek-mcp/` ships a 12-tool MCP server (Node 18+, vanilla ES modules):
+
+- `ecfr_get_part`, `ecfr_search`, `ecfr_currency_check` — eCFR data straight from `ecfr.gov`, cached 24h
+- `csl_search`, `csl_sources` — live Trade.gov screening
+- `sanitize_input` — zero-width / bidi / homoglyph / injection / shell-meta scrubber
+- `validate_disclosure` — schema v1.0.0 validator on every report
+- `audit_log`, `audit_verify`, `audit_tail` — HMAC-chained tamper-evident log
+- `report_to_docx` — markdown → `.docx` + `.json` sibling
+- `cui_gate` — records the canonical CUI/classified/§126.18 gate
+
+**Outbound network is limited to two U.S. government hosts: `www.ecfr.gov` and `data.trade.gov`. There is no ExChek-hosted dependency.**
+
+---
+
 ## Repository structure
 
 ```
 exchekskills/
 ├── .claude-plugin/
-│   └── plugin.json           # Plugin manifest for discovery and install
-├── skills/
-│   ├── exchek-skill/         # ECCN Classification
-│   │   ├── SKILL.md          # Skill instructions (required)
-│   │   ├── skill.yaml        # Skill metadata
-│   │   ├── templates/        # Report templates
-│   │   ├── references/       # Regulatory references, API docs
-│   │   └── prompts/          # System and user prompts
-│   ├── exchek-skill-csl/
-│   ├── exchek-skill-license/
-│   └── ... (16 skills total)
-├── marketplace.json          # Plugin marketplace manifest
+│   └── plugin.json           # Plugin manifest (v3.0.0)
+├── skills/                   # 16 skill packages (SKILL.md + templates + references)
+├── commands/                 # 5 slash commands
+├── agents/                   # 2 specialist agents
+├── hooks/hooks.json          # SessionStart / PreToolUse / PostToolUse
+├── servers/exchek-mcp/       # Local-first MCP server (Node, 12 tools)
+├── docs/                     # SECURITY, TELEMETRY, DATA_STORAGE, COMMUNICATIONS_KIT, CHAMPION_KIT
+├── tests/                    # node --test suites
+├── marketplace.json
+├── CHANGELOG.md
+├── CONTRIBUTING.md
 ├── README.md
 ├── LICENSE.md
 └── ETHOS.md
@@ -136,9 +187,33 @@ Each skill folder contains:
 
 ---
 
-## API
+## Enterprise docs
 
-All skills that use regulatory data call the ExChek API (free, no auth):
+- [SECURITY.md](docs/SECURITY.md) — what the plugin can and cannot do on your machine, prompt-injection defenses, audit-log integrity
+- [TELEMETRY.md](docs/TELEMETRY.md) — opt-in only; ExChek never receives data
+- [DATA_STORAGE.md](docs/DATA_STORAGE.md) — where artifacts live, retention, encryption, wiping
+- [COMMUNICATIONS_KIT.md](docs/COMMUNICATIONS_KIT.md) — copy-ready announcements for rolling ExChek out to a small team
+- [CHAMPION_KIT.md](docs/CHAMPION_KIT.md) — 30-day playbook for the ops lead becoming the export-compliance person
+
+---
+
+## Regulatory data sources
+
+The MCP server pulls live regulatory text directly from the authoritative U.S. government sources. **No ExChek-hosted dependency.**
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` | Title 15 (Parts 734, 738, 740, 742, 744, 746, 762, 772, 774) |
+| `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json` | Title 22 (Part 121 — USML) |
+| `GET https://data.trade.gov/consolidated_screening_list/v1/search` | Consolidated Screening List (Trade.gov) |
+| `GET https://data.trade.gov/consolidated_screening_list/v1/sources` | CSL source abbreviations |
+
+Cache TTL is 24h for eCFR (refreshes from ecfr.gov on demand). CSL is always live — screening cannot be cached.
+
+The legacy `api.exchek.us` endpoints are still online for clients on v2.x but **v3.0.0 no longer uses them**.
+
+<details>
+<summary>Legacy v2.x ExChek API (deprecated)</summary>
 
 | Endpoint | Description |
 |----------|-------------|
@@ -153,6 +228,8 @@ All skills that use regulatory data call the ExChek API (free, no auth):
 | `GET https://api.exchek.us/api/ecfr/search?q=term&title=15` | Search across all parts in a title |
 
 Full API reference: https://docs.exchek.us/docs/api-reference
+
+</details>
 
 ---
 
