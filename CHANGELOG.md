@@ -2,6 +2,20 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.1.0] — 2026-04-28
+
+**Bug fix: skills now actually use the local MCP.** v3.0.0 shipped the `exchek-mcp` server but the skill bodies still instructed Claude to curl `api.exchek.us` and spawn `node exchek-docx/scripts/report-to-docx.mjs` directly — so the MCP was running but unused. As a result, trial users were still hitting our remote API rather than the local-first path the docs promised.
+
+### Fixed
+
+- **All 16 SKILL.md files** now carry a prominent `⚡ Tools (v3.1.0+)` prefix block immediately after their frontmatter, declaring the available `mcp__exchek__*` tools and explicitly instructing Claude to use them instead of constructing HTTP requests or spawning shell commands.
+- The body narrative is unchanged so existing references in flow steps still read coherently as documentation; the prefix overrides them as the canonical implementation.
+
+### Effect
+
+- Outbound network from any skill is now limited to `www.ecfr.gov` (regulatory text, cached 24h) and `data.trade.gov` (CSL screening, live). No `api.exchek.us` calls.
+- Every flow gets input sanitization, CUI-gate recording, audit logging, and disclosure validation by default — these tools were exposed in v3.0.0 but never invoked.
+
 ## [3.0.2] — 2026-04-28
 
 - **Removed the `telemetry_enabled` userConfig toggle.** The field existed in v3.0.0 / v3.0.1 but no code emitted any spans — a dead switch. Removed the field and the corresponding env-var pass-through. The plugin now emits zero telemetry of any kind, and the doc says so plainly.

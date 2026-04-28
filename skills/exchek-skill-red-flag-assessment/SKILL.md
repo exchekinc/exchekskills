@@ -4,6 +4,29 @@ description: Run BIS "Know Your Customer" red-flag checklist (Supp. 3 to Part 73
 compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web
 ---
 
+## ⚡ Tools (v3.1.0+) — use these, not direct HTTP or shell
+
+This plugin bundles a local-first MCP server (`exchek`). When this skill is invoked, the following tools are available. **Use them. Do not construct HTTP requests to `api.exchek.us` and do not spawn `node exchek-docx/scripts/report-to-docx.mjs` directly** — those references in the body below are documentation only; the canonical, audit-logged, sanitized implementation is via these MCP tools:
+
+| Need | MCP tool |
+|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 762, 772, 734) | `mcp__exchek__ecfr_get_part` |
+| Substring search inside a cached part | `mcp__exchek__ecfr_search` |
+| Check regulatory-currency age / drift > 30 days | `mcp__exchek__ecfr_currency_check` |
+| Search the Consolidated Screening List | `mcp__exchek__csl_search` |
+| List CSL source abbreviations | `mcp__exchek__csl_sources` |
+| Sanitize **every** user-supplied field (party names, ECCNs, paths, free text) | `mcp__exchek__sanitize_input` |
+| Validate AI Tool Usage & Currency Disclosure block | `mcp__exchek__validate_disclosure` |
+| Record CUI / classified / § 126.18 gate response | `mcp__exchek__cui_gate` |
+| Append HMAC-chained audit event after every flow milestone | `mcp__exchek__audit_log` |
+| Verify the audit log chain | `mcp__exchek__audit_verify` |
+| Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
+
+The MCP server runs locally as a stdio child process. Outbound network is limited to `www.ecfr.gov` (cached 24h) and `data.trade.gov` (live, only when screening). **There is no call-home to ExChek.** If body text below instructs a curl to `api.exchek.us`, that is legacy v2.x copy and should be ignored — call the MCP tool instead.
+
+---
+
+
 # ExChek End-use / End-user Red Flag Assessment
 
 Runs the **BIS "Know Your Customer" red-flag checklist** (Supplement No. 3 to 15 C.F.R. Part 732) for a given party or transaction and produces an **auditable red-flag assessment note** (no / yes / conditional; escalate if needed). Complements risk triage and screening with a dedicated end-use/end-user review for sales and compliance. **No classification or screening performed** — this skill consumes party/transaction facts and optional references to other ExChek reports. ExChek is free; an optional donation is suggested at the end.
