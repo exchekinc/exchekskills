@@ -120,17 +120,30 @@ See each skill's `SKILL.md` for full instructions, flow, references, and templat
 
 ---
 
-## Slash commands
+## Invoking skills
 
-Five top-level slash commands wrap the most common flows:
+Each skill is invokable by name as a slash command (Cowork picks them up automatically from `skills/*/SKILL.md`):
 
-| Command | What it does |
+| Slash | Skill |
 |---|---|
-| `/exchek-classify` | Walk through ECCN/USML classification end-to-end, produce a Word memo |
-| `/exchek-screen` | Screen a party against the U.S. Consolidated Screening List |
-| `/exchek-jurisdiction` | Decide BIS (EAR) vs. DDTC (ITAR) for a product |
-| `/exchek-license` | Check whether a license is required for an ECCN to a destination |
-| `/exchek-audit` | Self-audit a CSV of past shipments (dispatches the `exchek-audit-runner` agent) |
+| `/exchek-classify` | ECCN / USML classification, end-to-end Word memo |
+| `/exchek-csl` | Consolidated Screening List search |
+| `/exchek-jurisdiction` | BIS (EAR) vs. DDTC (ITAR) determination |
+| `/exchek-license` | License-requirement check for an ECCN to a destination |
+| `/exchek-audit-lookback` | Self-audit a CSV of past shipments (auto-dispatches the `exchek-audit-runner` agent for big jobs) |
+| `/exchek-encryption` | 5A002 / 5D002 encryption classification + ENC notification |
+| `/exchek-country-risk` | Embargo, sanctions, and risk one-pager |
+| `/exchek-red-flag-assessment` | BIS Know-Your-Customer red-flag checklist |
+| `/exchek-deemed-export` | 15 CFR 734.2(b) deemed-export review |
+| `/exchek-export-docs` | Commercial invoice, packing list, AES/EEI |
+| `/exchek-ecp` | Generate an Export Compliance Program document |
+| `/exchek-compliance-report` | Compliance report card |
+| `/exchek-partner-compliance` | Distributor compliance pack with flow-down language |
+| `/exchek-recordkeeping` | 15 CFR 762 retention schedule |
+| `/exchek-risk-triage` | Score a transaction (auto-approve / hold / escalate) |
+| `/exchek-docx` | Convert any ExChek markdown report to .docx + .json |
+
+You can also just say what you need — "Classify this pressure sensor" or "Screen Acme Trading" — and the right skill activates.
 
 ## Agents
 
@@ -163,8 +176,7 @@ Five top-level slash commands wrap the most common flows:
 exchekskills/
 ├── .claude-plugin/
 │   └── plugin.json           # Plugin manifest (v3.0.0)
-├── skills/                   # 16 skill packages (SKILL.md + templates + references)
-├── commands/                 # 5 slash commands
+├── skills/                   # 16 skill packages (SKILL.md + templates + references) — invokable as /<skill-name>
 ├── agents/                   # 2 specialist agents
 ├── hooks/hooks.json          # SessionStart / PreToolUse / PostToolUse
 ├── servers/exchek-mcp/       # Local-first MCP server (Node, 12 tools)

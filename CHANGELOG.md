@@ -2,6 +2,10 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.0.1] — 2026-04-28
+
+- **Removed `commands/` directory** in favor of the canonical `skills/*/SKILL.md` format. Cowork now picks up each skill as `/<skill-name>` automatically; no separate flat `.md` wrappers needed. Silences the legacy-format deprecation notice on install.
+
 ## [3.0.0] — 2026-04-28
 
 Enterprise plugin packaging. Cowork-first, also runs in Claude Code. Voice rewritten for SMB manufacturers without compliance teams.
@@ -9,7 +13,7 @@ Enterprise plugin packaging. Cowork-first, also runs in Claude Code. Voice rewri
 ### Added
 
 - **Local-first MCP server** (`servers/exchek-mcp/`). Wraps eCFR (ecfr.gov), Trade.gov CSL, input sanitization, AI-disclosure validation, HMAC-chained audit log, and the docx converter. **No call-home; api.exchek.us is no longer a dependency.**
-- **Commands**: `/exchek-classify`, `/exchek-screen`, `/exchek-jurisdiction`, `/exchek-license`, `/exchek-audit`.
+- **Slash invocation** for every skill (Cowork picks them up from `skills/*/SKILL.md`).
 - **Agents**: `exchek-audit-runner` (long-running CSV audit), `exchek-classification-reviewer` (independent second-opinion).
 - **Hooks**: `SessionStart` installs MCP dependencies into `${CLAUDE_PLUGIN_DATA}` on first run and on `package.json` changes; `PreToolUse` ensures the audit log file exists; `PostToolUse` records report emission.
 - **userConfig**: `platform_tier`, `trade_gov_api_key` (sensitive, OS keychain), `audit_key` (sensitive), `telemetry_enabled` (off by default), `default_report_dir`.
