@@ -1,45 +1,27 @@
 # Telemetry — ExChek Skills
 
-**Default: telemetry is OFF.** This plugin does not call home.
+**The plugin emits zero telemetry.** No call-home, no analytics, no metrics endpoint. There is no opt-in toggle to flip; there's nothing to flip it for.
 
-If you want internal usage analytics — say, you run an SMB with five engineers and want to know how often each is running screenings — you can turn telemetry on and point it at your own collector. ExChek never receives the data.
+## What this means in practice
 
-## How to turn it on
+- Nothing the plugin does is reported to ExChek.
+- Nothing the plugin does is reported to a third-party analytics service.
+- The MCP server's only outbound calls are `www.ecfr.gov` (regulation text) and `data.trade.gov` (screening list, only when you screen). Both are U.S. government endpoints required to do the work.
+- The audit log lives on your disk, owner-only, and is never transmitted anywhere.
 
-1. `/plugin config exchekskills`
-2. Toggle **Enable usage telemetry** to ON.
-3. In Cowork's managed config, set `otlpEndpoint` to your OpenTelemetry collector. Cowork supports this natively — see https://claude.com/docs/cowork/3p/telemetry.
+If you want operational metrics (how often each skill ran, average duration, etc.) you can build that yourself by tailing `${CLAUDE_PLUGIN_DATA}/audit.jsonl`. Each line is JSON; pipe it into anything you like.
 
-That's it. The plugin's `Stop` hook emits an OTLP span at the end of every conversation that used an ExChek skill. The span carries:
+## Cowork's own telemetry (separate from the plugin)
 
-| Field | Example |
-|---|---|
-| `skill.name` | `exchek-classify` |
-| `skill.version` | `2.1.0` |
-| `event_type` | `report_emitted` |
-| `duration_ms` | `42000` |
-| `platform_tier` | `cowork-enterprise` |
-| `host.name` | redacted SHA-256 of the machine name |
+Cowork itself emits two streams, controlled by Cowork's managed config:
 
-It does **not** carry:
+| Stream | What it is | How to disable |
+|---|---|---|
+| Essential | Crash reports, performance timings, app version, OS. **No prompt or response content.** | `disableEssentialTelemetry: true` |
+| Non-essential | Feature adoption, session counts, UI interactions. **No prompt or response content.** | `disableNonessentialTelemetry: true` |
 
-- The contents of any prompt or response.
-- Item descriptions, party names, ECCNs, country codes, or any other compliance content.
-- API keys, file paths, or user identifiers.
+The plugin does not control these and is not affected by them. See https://claude.com/docs/cowork/3p/telemetry.
 
-## How to turn it off
+## Why we removed the toggle
 
-It's already off. If you turned it on and want it off, set the toggle back. The hook becomes a no-op.
-
-## Cowork's own telemetry (separate from the plugin's)
-
-Cowork itself emits two streams of its own: essential (crash reports, performance) and non-essential (feature usage). Both can be disabled in Cowork's managed config:
-
-- `disableEssentialTelemetry: true`
-- `disableNonessentialTelemetry: true`
-
-These switches are independent from the plugin toggle. Even if you disable both, the plugin will keep working — it has no runtime dependency on Cowork's telemetry stream.
-
-## Why we default to OFF
-
-You are an SMB manufacturer. Your shipment data, your customer list, and your product specs are competitive. You also probably haven't talked to a security reviewer about whether sending anonymous spans to a third party is fine. So the default answer is "don't send anything until you decide to."
+v3.0.0 and v3.0.1 shipped a `telemetry_enabled` config toggle that did nothing — the field existed but no code emitted spans. v3.0.2 removed the field. If a real need ever shows up, we'll add it back as actual functioning code rather than a placeholder.

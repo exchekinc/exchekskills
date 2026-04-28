@@ -2,6 +2,11 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.0.2] — 2026-04-28
+
+- **Removed the `telemetry_enabled` userConfig toggle.** The field existed in v3.0.0 / v3.0.1 but no code emitted any spans — a dead switch. Removed the field and the corresponding env-var pass-through. The plugin now emits zero telemetry of any kind, and the doc says so plainly.
+- **Rewrote `docs/TELEMETRY.md`** to reflect the truth: nothing leaves the machine except the two U.S. government API calls (`ecfr.gov`, `data.trade.gov`) and only when a skill needs them.
+
 ## [3.0.1] — 2026-04-28
 
 - **Removed `commands/` directory** in favor of the canonical `skills/*/SKILL.md` format. Cowork now picks up each skill as `/<skill-name>` automatically; no separate flat `.md` wrappers needed. Silences the legacy-format deprecation notice on install.

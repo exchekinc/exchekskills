@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "ExChek for SMB manufacturers — 16 export-compliance skills + a local-first MCP server. Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
@@ -43,7 +43,6 @@
         "NODE_PATH": "${CLAUDE_PLUGIN_DATA}/node_modules",
         "CLAUDE_PLUGIN_OPTION_TRADE_GOV_API_KEY": "${user_config.trade_gov_api_key}",
         "CLAUDE_PLUGIN_OPTION_AUDIT_KEY": "${user_config.audit_key}",
-        "EXCHEK_TELEMETRY_ENABLED": "${user_config.telemetry_enabled}",
         "EXCHEK_PLATFORM_TIER": "${user_config.platform_tier}"
       }
     }
@@ -66,12 +65,6 @@
       "title": "Audit-log HMAC key (optional)",
       "description": "Lets you bring your own 32+ character key to seal the local audit log. If you skip this, the plugin generates one on first run and stores it owner-readable in the plugin data directory.",
       "sensitive": true
-    },
-    "telemetry_enabled": {
-      "type": "boolean",
-      "title": "Enable usage telemetry",
-      "description": "OFF by default. When ON, the plugin emits anonymous skill-invocation counts to your own OpenTelemetry collector (configured via Cowork's otlpEndpoint). ExChek never receives this data.",
-      "default": false
     },
     "default_report_dir": {
       "type": "directory",
