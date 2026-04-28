@@ -1,0 +1,36 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "diff -q \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" >/dev/null 2>&1 || (mkdir -p \"${CLAUDE_PLUGIN_DATA}\" && cp \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" && cp \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json.installing\" && (cd \"${CLAUDE_PLUGIN_DATA}\" && npm install --omit=dev --no-audit --no-fund --prefer-offline) && rm -f \"${CLAUDE_PLUGIN_DATA}/package.json.installing\") || rm -f \"${CLAUDE_PLUGIN_DATA}/package.json\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "mcp__exchek__report_to_docx|mcp__exchek__csl_search",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "test -f \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\" || (mkdir -p \"${CLAUDE_PLUGIN_DATA}\" && touch \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\" && chmod 600 \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\")"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__exchek__report_to_docx",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"ts\":\"'$(date -u +%FT%TZ)'\",\"event\":\"report_emitted\"}' >> \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\""
+          }
+        ]
+      }
+    ]
+  }
+}

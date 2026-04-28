@@ -1,0 +1,23 @@
+{
+  "name": "exchek-mcp",
+  "version": "3.0.0",
+  "description": "Local-first MCP server for ExChek export-compliance skills. Wraps eCFR (ecfr.gov), Trade.gov CSL, input sanitization, audit logging, and the docx converter. No call-home.",
+  "type": "module",
+  "private": true,
+  "main": "index.mjs",
+  "bin": {
+    "exchek-mcp": "index.mjs"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "docx": "^8.5.0"
+  },
+  "scripts": {
+    "start": "node index.mjs",
+    "test": "node --test tests/"
+  },
+  "license": "Proprietary"
+}

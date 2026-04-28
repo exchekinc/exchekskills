@@ -1,7 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
-  "description": "ExChek Skills — 16 export compliance skills for AI agents. ECCN classification, screening, license determination, encryption, jurisdiction, country risk, audit, and more. Free to use.",
-  "version": "2.1.0",
+  "version": "3.0.0",
+  "description": "ExChek for SMB manufacturers — 16 export-compliance skills + a local-first MCP server. Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
     "email": "matt@exchek.us",
@@ -12,6 +13,7 @@
   "license": "Proprietary",
   "keywords": [
     "export-compliance",
+    "smb-manufacturer",
     "eccn",
     "itar",
     "ear",
@@ -25,6 +27,58 @@
     "bis",
     "ddtc",
     "ofac",
-    "trade-compliance"
-  ]
+    "trade-compliance",
+    "local-first",
+    "audit-ready",
+    "cowork"
+  ],
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "agents": "./agents/",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": {
+    "exchek": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/index.mjs"],
+      "env": {
+        "NODE_PATH": "${CLAUDE_PLUGIN_DATA}/node_modules",
+        "CLAUDE_PLUGIN_OPTION_TRADE_GOV_API_KEY": "${user_config.trade_gov_api_key}",
+        "CLAUDE_PLUGIN_OPTION_AUDIT_KEY": "${user_config.audit_key}",
+        "EXCHEK_TELEMETRY_ENABLED": "${user_config.telemetry_enabled}",
+        "EXCHEK_PLATFORM_TIER": "${user_config.platform_tier}"
+      }
+    }
+  },
+  "userConfig": {
+    "platform_tier": {
+      "type": "string",
+      "title": "AI platform tier",
+      "description": "Your privacy/training tier. ExChek records this in every audit-ready report. Recommended: Cowork enterprise, Claude Enterprise, Claude Team, or a Workspace with training disabled.",
+      "default": "cowork-enterprise"
+    },
+    "trade_gov_api_key": {
+      "type": "string",
+      "title": "Trade.gov API key (free)",
+      "description": "Free key from https://developer.trade.gov. Required only when you screen parties (CSL search). Stored in your OS keychain — never in plain text. Get one in 2 minutes if you don't have it; the screening tool will tell you when you need it.",
+      "sensitive": true
+    },
+    "audit_key": {
+      "type": "string",
+      "title": "Audit-log HMAC key (optional)",
+      "description": "Lets you bring your own 32+ character key to seal the local audit log. If you skip this, the plugin generates one on first run and stores it owner-readable in the plugin data directory.",
+      "sensitive": true
+    },
+    "telemetry_enabled": {
+      "type": "boolean",
+      "title": "Enable usage telemetry",
+      "description": "OFF by default. When ON, the plugin emits anonymous skill-invocation counts to your own OpenTelemetry collector (configured via Cowork's otlpEndpoint). ExChek never receives this data.",
+      "default": false
+    },
+    "default_report_dir": {
+      "type": "directory",
+      "title": "Default report folder",
+      "description": "Where finished .docx reports land. Defaults to ~/Documents/ExChek-Reports. You can always override per-report.",
+      "default": "~/Documents/ExChek-Reports"
+    }
+  }
 }
