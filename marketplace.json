@@ -3,7 +3,7 @@
   "plugins": [
     {
       "name": "exchekskills",
-      "description": "ExChek Skills — 16 export compliance skills for AI agents",
+      "description": "ExChek Skills — 20 export compliance skills for AI agents",
       "source": {
         "source": "github",
         "repo": "exchekinc/exchekskills"

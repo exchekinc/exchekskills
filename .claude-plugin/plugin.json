@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
-  "version": "3.1.0",
-  "description": "ExChek for SMB manufacturers — 16 export-compliance skills + a local-first MCP server. Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
+  "version": "3.2.0",
+  "description": "ExChek for SMB manufacturers — 20 export-compliance skills + a local-first MCP server. Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
     "email": "matt@exchek.us",

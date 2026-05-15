@@ -1,0 +1,14 @@
+# ExChek Orchestrator Skill manifest
+# Used by agents and tools for discovery; SKILL.md holds full instructions.
+
+name: exchek-orchestrator
+description: "The ExChek Engine hub. Invoke with /exchek for a status dashboard, or /exchek [command] to route to any skill. Reads .exchek/ state for context-aware suggestions."
+compatibility:
+  - Claude Code
+  - Claude desktop
+  - Claude CoWork
+  - Claude web
+  - Cursor
+
+version: "1"
+main: SKILL.md
