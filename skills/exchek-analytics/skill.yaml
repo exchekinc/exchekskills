@@ -1,0 +1,14 @@
+# ExChek Analytics Dashboard Skill manifest
+# Used by agents and tools for discovery; SKILL.md holds full instructions.
+
+name: exchek-analytics
+description: Usage statistics and telemetry dashboard for the ExChek Engine. Shows local skill usage counts, success rates, average durations, most-used skills, trends over time, compliance coverage gaps, and optional CSV export. Respects privacy — never tracks code, paths, prompts, PII, or compliance results.
+compatibility:
+  - Claude Code
+  - Claude desktop
+  - Claude CoWork
+  - Claude web
+  - Cursor
+
+version: "1"
+main: SKILL.md

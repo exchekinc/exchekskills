@@ -1,11 +1,15 @@
 // Local-first eCFR data fetcher.
-// Pulls part structure straight from ecfr.gov (the authoritative source) and
-// caches under ${CLAUDE_PLUGIN_DATA}/ecfr/. No ExChek-hosted dependency.
+// Primary: ecfr.gov (authoritative). Fallback: api.exchek.us (public Cloudflare
+// edge cache of the same data, no auth, no PII). Cached locally under
+// ${CLAUDE_PLUGIN_DATA}/ecfr/ for 24h.
 //
 // The eCFR developer API exposes:
 //   GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json
 //   GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json
 //   GET https://www.ecfr.gov/api/versioner/v1/full/{date}/title-{n}.xml?part={part}
+//
+// The ExChek API mirror exposes the part subtree directly:
+//   GET https://api.exchek.us/api/ecfr/{part}
 //
 // We cache structure JSON for 24 hours, then refresh.
 
@@ -17,6 +21,10 @@ const TITLE_FOR_PART = {
   "734": 15, "738": 15, "740": 15, "742": 15, "744": 15, "746": 15,
   "748": 15, "762": 15, "772": 15, "774": 15,
 };
+
+// Parts mirrored by api.exchek.us (per GET / endpoint listing).
+const EXCHEK_API_PARTS = new Set(["121", "734", "738", "740", "742", "744", "746", "774"]);
+const EXCHEK_API_BASE = "https://api.exchek.us";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const STALE_AFTER_MS = 30 * 24 * 60 * 60 * 1000; // 30 days = regulatory-drift caveat.
@@ -86,20 +94,37 @@ export async function getPart(part, { force_refresh = false } = {}) {
     }
   }
 
-  // Fetch the title structure and extract the requested part subtree to keep payloads small.
-  const url = `https://www.ecfr.gov/api/versioner/v1/structure/current/title-${title}.json`;
-  const titleJson = await fetchWithTimeout(url);
-  const tree = JSON.parse(titleJson);
-  const partNode = findPart(tree, partKey);
-  if (!partNode) {
-    throw new Error(`Part ${partKey} not found in title ${title} structure.`);
+  // Primary: ecfr.gov full title structure, extract the requested part subtree.
+  // Fallback: api.exchek.us part endpoint when ecfr.gov is unreachable AND the part is mirrored.
+  let partNode = null;
+  let source = null;
+  let primaryError = null;
+  try {
+    const url = `https://www.ecfr.gov/api/versioner/v1/structure/current/title-${title}.json`;
+    const titleJson = await fetchWithTimeout(url);
+    const tree = JSON.parse(titleJson);
+    partNode = findPart(tree, partKey);
+    if (!partNode) {
+      throw new Error(`Part ${partKey} not found in title ${title} structure.`);
+    }
+    source = "ecfr.gov";
+  } catch (e) {
+    primaryError = e;
+    if (EXCHEK_API_PARTS.has(partKey)) {
+      const url = `${EXCHEK_API_BASE}/api/ecfr/${partKey}`;
+      const body = await fetchWithTimeout(url);
+      partNode = JSON.parse(body);
+      source = "api.exchek.us";
+    } else {
+      throw primaryError;
+    }
   }
-  const body = JSON.stringify(partNode);
-  await writeCached(filename, body);
+
+  await writeCached(filename, JSON.stringify(partNode));
   return {
     part: partKey,
     title,
-    source: "ecfr.gov",
+    source,
     fetched_at: new Date().toISOString(),
     stale: false,
     body: partNode,

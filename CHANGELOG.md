@@ -2,6 +2,31 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.2.0] — 2026-05-15
+
+**4 new engine skills + `api.exchek.us` as a public eCFR fallback.** v3.1.0 made the local MCP load-bearing but left a single point of failure: if `ecfr.gov` was rate-limiting or unreachable, every classification stalled. This release ports the engine-shell skills from the paid-tier plugin (analytics, onboarding, orchestrator, setup) into the public plugin and adds a backup path through our public Cloudflare cache.
+
+### Added
+
+- **4 new skills**, ported from the paid tier:
+  - `exchek-analytics` — Audit Readiness Score dashboard, skill-usage stats, CSV export. Reads `~/.exchek/analytics/events.jsonl` and `.exchek/state/transactions.jsonl`. No data leaves the machine.
+  - `exchek-onboarding` — interactive 60-minute first-hour flow. Produces real artifacts (classification, screening, license, branded doc). Tracks progress in `.exchek/state/onboarding-progress.json`.
+  - `exchek-orchestrator` — `/exchek` command router and transaction hub. Tracks every transaction from classification through documentation, surfaces the next action.
+  - `exchek-setup` — first-run wizard. Verifies company profile, tests API connectivity, optionally validates an `api_key`, arms the engine.
+- **`api.exchek.us` eCFR fallback in `servers/exchek-mcp/lib/ecfr.mjs`**. When `www.ecfr.gov` is unreachable for a supported part (121, 734, 738, 740, 742, 744, 746, 774), the MCP transparently fetches from our public Cloudflare edge cache at `https://api.exchek.us/api/ecfr/{part}`. Same shape, no auth, no PII sent. Parts 748/762/772 are not mirrored and continue to depend on ecfr.gov.
+- **`source` field on `getPart()` responses** now distinguishes `"cache"`, `"ecfr.gov"`, and `"api.exchek.us"` so the audit trail records which source was used.
+
+### Changed
+
+- **All 20 SKILL.md boilerplate paragraphs** updated. The outbound-network claim now reads: "limited to `www.ecfr.gov` (primary), `api.exchek.us` (fallback only when ecfr.gov is unreachable), and `data.trade.gov` (live, only when screening). No PII, no item context, no compliance results leave your machine."
+- **`exchek-setup`** wizard rewrites: removed the assumption that `.exchek/config.json` is pre-populated by a paid-tier "provisioning worker"; api-key validation is now explicitly opt-in (paid-tier feature, free-tier users skip it cleanly); the CRM/ERP step gracefully detects whether `exchek-connector` is installed and skips if not.
+- **`exchek-orchestrator`** and **`exchek-onboarding`** mark `/exchek connect` (exchek-connector) and `/exchek update` (exchek-updater) as paid-tier features not present in the public plugin. Onboarding stops 4.1 and 4.2 fall back to a "paid-tier preview" if the underlying skill isn't installed.
+
+### Effect
+
+- The MCP is no longer single-source-of-truth dependent on `ecfr.gov` uptime. If a CDN hiccup or rate limit knocks out direct access, classifications continue to work against the public ExChek mirror.
+- Public plugin now ships 20 skills (was 16). The 4 paid-tier-only skills (`exchek-connector`, `exchek-updater`, plus the rest of the enterprise suite) remain in the private enterprise plugin.
+
 ## [3.1.0] — 2026-04-28
 
 **Bug fix: skills now actually use the local MCP.** v3.0.0 shipped the `exchek-mcp` server but the skill bodies still instructed Claude to curl `api.exchek.us` and spawn `node exchek-docx/scripts/report-to-docx.mjs` directly — so the MCP was running but unused. As a result, trial users were still hitting our remote API rather than the local-first path the docs promised.

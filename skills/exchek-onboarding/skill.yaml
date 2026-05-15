@@ -1,0 +1,15 @@
+# ExChek Onboarding Skill manifest
+# Used by agents and tools for discovery; SKILL.md holds full instructions.
+
+name: exchek-onboarding
+description: Guided onboarding tour for the ExChek Engine. Walks through all 22 skills with real-world examples tailored to the client's industry. Tracks progress across sessions. Use when the user is new to ExChek or wants a walkthrough of all available skills.
+compatibility:
+  - Claude Code
+  - Claude desktop
+  - Claude CoWork
+  - Claude web
+  - Cursor
+
+# Optional metadata
+version: "1"
+main: SKILL.md

@@ -1,0 +1,15 @@
+# ExChek Setup Skill manifest
+# Used by agents and tools for discovery; SKILL.md holds full instructions.
+
+name: exchek-setup
+description: First-run setup wizard for the ExChek Engine. Verifies company profile, report defaults, API connectivity, CRM/ERP connectors, and telemetry preferences. Use when the user wants to configure their ExChek Engine for the first time or re-verify their setup.
+compatibility:
+  - Claude Code
+  - Claude desktop
+  - Claude CoWork
+  - Claude web
+  - Cursor
+
+# Optional metadata
+version: "1"
+main: SKILL.md

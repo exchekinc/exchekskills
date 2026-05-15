@@ -22,7 +22,7 @@ This plugin bundles a local-first MCP server (`exchek`). When this skill is invo
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-The MCP server runs locally as a stdio child process. Outbound network is limited to `www.ecfr.gov` (cached 24h) and `data.trade.gov` (live, only when screening). **There is no call-home to ExChek.** If body text below instructs a curl to `api.exchek.us`, that is legacy v2.x copy and should be ignored — call the MCP tool instead.
+The MCP server runs locally as a stdio child process. Outbound network is limited to `www.ecfr.gov` (primary eCFR source, cached 24h), `api.exchek.us` (public eCFR cache; used only as a fallback when ecfr.gov is unreachable), and `data.trade.gov` (live, only when screening). **No PII, no item context, no compliance results leave your machine.** If body text below instructs a curl to `api.exchek.us`, that is legacy v2.x copy — call the MCP tool instead, which routes to ecfr.gov first with the public mirror as a safety net.
 
 ---
 
