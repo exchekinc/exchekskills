@@ -22,10 +22,20 @@ All notable changes to the **exchekskills** plugin. Follows [semver](https://sem
 - **`exchek-setup`** wizard rewrites: removed the assumption that `.exchek/config.json` is pre-populated by a paid-tier "provisioning worker"; api-key validation is now explicitly opt-in (paid-tier feature, free-tier users skip it cleanly); the CRM/ERP step gracefully detects whether `exchek-connector` is installed and skips if not.
 - **`exchek-orchestrator`** and **`exchek-onboarding`** mark `/exchek connect` (exchek-connector) and `/exchek update` (exchek-updater) as paid-tier features not present in the public plugin. Onboarding stops 4.1 and 4.2 fall back to a "paid-tier preview" if the underlying skill isn't installed.
 
+### Fixed
+
+- **Word table rendering in generated `.docx` reports** (`skills/exchek-skill-docx/scripts/report-to-docx.mjs`). The converter was using v8-era docx-library patterns in three places:
+  - Bare string `"PERCENTAGE"` for table width type — not a valid OOXML value. Word expects `"pct"`. The library wrote `<w:tblW w:type="PERCENTAGE" w:w="100"/>` which Word fell back to default rendering for.
+  - No `columnWidths` array on the `Table` constructor. The auto-generated `<w:tblGrid>` ended up with `<w:gridCol w:w="100"/>` for each column — 100 twips ≈ 0.07 inches — so tables rendered nearly invisible.
+  - `new DocumentDefaults(...)` and `new Styles(...)` instances passed as separate options. These constructors were refactored in docx@9.6.1; the v9 API expects a single `styles` plain object with `default.document` and `paragraphStyles` keys.
+- Fix: imports `WidthType` from `docx`; computes column widths in twips (9360 ÷ column count, where 9360 is US-letter usable width with 1-inch margins); attaches `columnWidths` to every `Table` and per-cell `width: { size, type: WidthType.DXA }`; uniform-pads ragged rows so every row has the same cell count; rewrites the Document constructor to use the v9 inline-styles object with `basedOn: "Normal"` / `next: "Normal"` / `quickFormat: true` on each heading style.
+- Verified end-to-end: generated `.docx` for 1-column, 2-column, 3-column-with-padding, and 4-column tables; every `<w:gridCol>` sum matches the `<w:tblW>` (9360 twips); table width attribute is `w:type="dxa"` (valid OOXML).
+
 ### Effect
 
 - The MCP is no longer single-source-of-truth dependent on `ecfr.gov` uptime. If a CDN hiccup or rate limit knocks out direct access, classifications continue to work against the public ExChek mirror.
 - Public plugin now ships 20 skills (was 16). The 4 paid-tier-only skills (`exchek-connector`, `exchek-updater`, plus the rest of the enterprise suite) remain in the private enterprise plugin.
+- Tables in compliance reports now render at full page width with proper column distribution in Word, LibreOffice, and Pages.
 
 ## [3.1.0] — 2026-04-28
 
