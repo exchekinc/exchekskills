@@ -25,16 +25,17 @@ import {
   Paragraph,
   TextRun,
   HeadingLevel,
-  DocumentDefaults,
-  Styles,
   Table,
   TableRow,
   TableCell,
+  WidthType,
 } from "docx";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MAX_PARAGRAPH_LENGTH_FOR_H3 = 120;
+// US letter (12240 twips) minus 1-inch margins (1440 each side) = 9360 twips usable width.
+const PAGE_USABLE_WIDTH_TWIPS = 9360;
 
 /** Parse inline **bold** and *italic* into runs; strips markdown. */
 function parseInlineFormatting(text) {
@@ -237,28 +238,36 @@ function buildDocument(blocks) {
         break;
       case "table":
         if (block.rows && block.rows.length > 0) {
-          const tableRows = block.rows.map(
-            (cells) =>
-              new TableRow({
-                children: cells.map(
-                  (cellText) =>
-                    new TableCell({
-                      children: [
-                        new Paragraph({
-                          children: parseInlineFormatting(cellText).map((r) =>
-                            new TextRun({ text: r.text, bold: r.bold, italics: r.italic })
-                          ),
-                          spacing: { after: 60 },
-                        }),
-                      ],
-                    })
-                ),
-              })
-          );
+          // Determine column count from the widest row; pad short rows so every
+          // row has the same cell count (Word requires uniform grid).
+          const columnCount = Math.max(...block.rows.map((r) => r.length));
+          const columnWidth = Math.floor(PAGE_USABLE_WIDTH_TWIPS / columnCount);
+          const columnWidths = Array(columnCount).fill(columnWidth);
+
+          const tableRows = block.rows.map((cells) => {
+            const padded = cells.concat(Array(columnCount - cells.length).fill(""));
+            return new TableRow({
+              children: padded.map(
+                (cellText) =>
+                  new TableCell({
+                    width: { size: columnWidth, type: WidthType.DXA },
+                    children: [
+                      new Paragraph({
+                        children: parseInlineFormatting(cellText).map((r) =>
+                          new TextRun({ text: r.text, bold: r.bold, italics: r.italic })
+                        ),
+                        spacing: { after: 60 },
+                      }),
+                    ],
+                  })
+              ),
+            });
+          });
           children.push(
             new Table({
               rows: tableRows,
-              width: { size: 100, type: "PERCENTAGE" },
+              width: { size: PAGE_USABLE_WIDTH_TWIPS, type: WidthType.DXA },
+              columnWidths,
             })
           );
           children.push(
@@ -283,16 +292,13 @@ function buildDocument(blocks) {
   }
 
   return new Document({
-    docDefaults: new DocumentDefaults({
-      run: {
-        font: "Calibri",
-        size: 22, // 11pt body (half-points)
+    styles: {
+      default: {
+        document: {
+          run: { font: "Calibri", size: 22 }, // 11pt body (half-points)
+          paragraph: { spacing: { after: 120, line: 276 } },
+        },
       },
-      paragraph: {
-        spacing: { after: 120, line: 276 },
-      },
-    }),
-    styles: new Styles({
       paragraphStyles: [
         {
           id: "Normal",
@@ -302,23 +308,32 @@ function buildDocument(blocks) {
         {
           id: "Heading1",
           name: "Heading 1",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
           run: { font: "Calibri", size: 28, bold: true }, // 14pt
           paragraph: { spacing: { before: 240, after: 120 } },
         },
         {
           id: "Heading2",
           name: "Heading 2",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
           run: { font: "Calibri", size: 24, bold: true }, // 12pt
           paragraph: { spacing: { before: 240, after: 120 } },
         },
         {
           id: "Heading3",
           name: "Heading 3",
+          basedOn: "Normal",
+          next: "Normal",
+          quickFormat: true,
           run: { font: "Calibri", size: 22, bold: true }, // 11pt bold
           paragraph: { spacing: { before: 120, after: 60 } },
         },
       ],
-    }),
+    },
     sections: [
       {
         properties: {},
