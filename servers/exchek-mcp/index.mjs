@@ -40,7 +40,7 @@ import { validateDisclosure } from "./lib/disclosure.mjs";
 import { convert as docxConvert } from "./lib/docx.mjs";
 import { resolveRegulatorySource } from "./lib/datasource.mjs";
 
-const VERSION = "3.4.1";
+const VERSION = "3.4.2";
 
 const TOOLS = [
   {
@@ -257,11 +257,20 @@ const HANDLERS = {
     // holds the key) so the event is part of the verifiable chain. Best-effort:
     // a logging failure must never block report generation.
     try {
+      const primaryPath = out?.docx_path || out?.html_path || null;
       await audit.append({
         event_type: "report_emitted",
         tool: "report_to_docx",
-        summary: out?.docx_path ? `report generated: ${out.docx_path}` : "report generated",
-        metadata: { docx_path: out?.docx_path ?? null, json_path: out?.json_path ?? null, bytes: out?.bytes ?? null },
+        summary: primaryPath
+          ? `report generated${out?.fallback ? " (HTML fallback)" : ""}: ${primaryPath}`
+          : "report generated",
+        metadata: {
+          docx_path: out?.docx_path ?? null,
+          html_path: out?.html_path ?? null,
+          json_path: out?.json_path ?? null,
+          fallback: !!out?.fallback,
+          bytes: out?.bytes ?? null,
+        },
       });
     } catch {
       /* non-fatal */

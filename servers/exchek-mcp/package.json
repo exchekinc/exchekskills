@@ -1,6 +1,6 @@
 {
   "name": "exchek-mcp",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "Local-first MCP server for ExChek export-compliance skills. Wraps eCFR (ecfr.gov, with api.exchek.us as a disclosed fallback), Trade.gov CSL, input sanitization, HMAC-chained audit logging, and the docx converter. The hosted ExChek API MCP is a separate, user-selectable data source.",
   "type": "module",
   "private": true,
@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "docx": "^8.5.0"
+    "docx": "9.6.1"
   },
   "scripts": {
     "start": "node index.mjs",

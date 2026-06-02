@@ -9,33 +9,47 @@
  * Usage: node report-to-docx.mjs <path-to-report.md> [metadata.json]
  *   <path-to-report.md>   — markdown report (required)
  *   [metadata.json]       — optional structured metadata per json-output-schema.md.
- *                           When provided, it is merged with report-path fields
- *                           and written as <basename>.json next to the .docx.
- *                           When omitted, a minimal stub JSON sibling is written.
- * Output: <path-to-report.docx> AND <path-to-report.json> in the same directory.
- * Requires: npm install (in this scripts folder) first.
+ * Output: <basename>.docx (or, if the docx engine is unavailable, <basename>.html
+ *   as a graceful fallback) AND <basename>.json in the same directory.
+ *
+ * Robustness (v3.4.2): docx is imported dynamically and the render is wrapped so a
+ * missing/broken docx install degrades to an HTML fallback instead of crashing; the
+ * JSON sibling is always written first; astral-plane characters (>U+FFFF, e.g. emoji)
+ * are stripped to avoid the JSZip surrogate-pair corruption present in docx < 9.6.0.
  */
 
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve, dirname, basename } from "path";
-import { fileURLToPath } from "url";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-} from "docx";
+import { fileURLToPath, pathToFileURL } from "url";
+
+// docx is loaded dynamically in main() (see module docstring). Assigned on success.
+let Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const MAX_PARAGRAPH_LENGTH_FOR_H3 = 120;
 // US letter (12240 twips) minus 1-inch margins (1440 each side) = 9360 twips usable width.
 const PAGE_USABLE_WIDTH_TWIPS = 9360;
+const MIN_DOCX_VERSION = "9.6.0"; // 9.6.0 fixed the JSZip >U+FFFF corruption bug.
+
+/** Compare dotted numeric versions. Returns -1 / 0 / 1. */
+function compareVersion(a, b) {
+  const pa = String(a).split(".").map((n) => parseInt(n, 10) || 0);
+  const pb = String(b).split(".").map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d !== 0) return d < 0 ? -1 : 1;
+  }
+  return 0;
+}
+
+/** Remove astral-plane characters (>U+FFFF: emoji, math alphanumerics, etc.). They
+ *  trigger the docx<9.6.0 surrogate-pair corruption and have no place in a legal memo.
+ *  BMP punctuation (en/em dashes, smart quotes, bullets) is left intact. */
+function stripAstral(text) {
+  if (typeof text !== "string") return text;
+  return text.replace(/[\u{10000}-\u{10FFFF}]/gu, "");
+}
 
 /** Parse inline **bold** and *italic* into runs; strips markdown. */
 function parseInlineFormatting(text) {
@@ -80,7 +94,6 @@ function parseReportToBlocks(md) {
   while (i < lines.length) {
     const line = lines[i];
     const trimmed = line.trim();
-    const next = lines[i + 1]?.trim() ?? "";
 
     if (!trimmed) {
       i++;
@@ -194,33 +207,21 @@ function buildDocument(blocks) {
       case "heading1":
         if (text) {
           children.push(
-            new Paragraph({
-              text,
-              heading: HeadingLevel.HEADING_1,
-              spacing: { before: 240, after: 120 },
-            })
+            new Paragraph({ text, heading: HeadingLevel.HEADING_1, spacing: { before: 240, after: 120 } })
           );
         }
         break;
       case "heading2":
         if (text) {
           children.push(
-            new Paragraph({
-              text,
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 240, after: 120 },
-            })
+            new Paragraph({ text, heading: HeadingLevel.HEADING_2, spacing: { before: 240, after: 120 } })
           );
         }
         break;
       case "heading3":
         if (text) {
           children.push(
-            new Paragraph({
-              text,
-              heading: HeadingLevel.HEADING_3,
-              spacing: { before: 120, after: 60 },
-            })
+            new Paragraph({ text, heading: HeadingLevel.HEADING_3, spacing: { before: 120, after: 60 } })
           );
         }
         break;
@@ -264,29 +265,15 @@ function buildDocument(blocks) {
             });
           });
           children.push(
-            new Table({
-              rows: tableRows,
-              width: { size: PAGE_USABLE_WIDTH_TWIPS, type: WidthType.DXA },
-              columnWidths,
-            })
+            new Table({ rows: tableRows, width: { size: PAGE_USABLE_WIDTH_TWIPS, type: WidthType.DXA }, columnWidths })
           );
-          children.push(
-            new Paragraph({
-              children: [new TextRun({ text: "" })],
-              spacing: { after: 120 },
-            })
-          );
+          children.push(new Paragraph({ children: [new TextRun({ text: "" })], spacing: { after: 120 } }));
         }
         break;
       default:
         if (text) {
           const runs = parseInlineFormatting(text);
-          children.push(
-            new Paragraph({
-              children: runsToParagraphChildren(runs),
-              spacing: { after: 120 },
-            })
-          );
+          children.push(new Paragraph({ children: runsToParagraphChildren(runs), spacing: { after: 120 } }));
         }
     }
   }
@@ -300,57 +287,18 @@ function buildDocument(blocks) {
         },
       },
       paragraphStyles: [
-        {
-          id: "Normal",
-          name: "Normal",
-          run: { font: "Calibri", size: 22 },
-        },
-        {
-          id: "Heading1",
-          name: "Heading 1",
-          basedOn: "Normal",
-          next: "Normal",
-          quickFormat: true,
-          run: { font: "Calibri", size: 28, bold: true }, // 14pt
-          paragraph: { spacing: { before: 240, after: 120 } },
-        },
-        {
-          id: "Heading2",
-          name: "Heading 2",
-          basedOn: "Normal",
-          next: "Normal",
-          quickFormat: true,
-          run: { font: "Calibri", size: 24, bold: true }, // 12pt
-          paragraph: { spacing: { before: 240, after: 120 } },
-        },
-        {
-          id: "Heading3",
-          name: "Heading 3",
-          basedOn: "Normal",
-          next: "Normal",
-          quickFormat: true,
-          run: { font: "Calibri", size: 22, bold: true }, // 11pt bold
-          paragraph: { spacing: { before: 120, after: 60 } },
-        },
+        { id: "Normal", name: "Normal", run: { font: "Calibri", size: 22 } },
+        { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: "Calibri", size: 28, bold: true }, paragraph: { spacing: { before: 240, after: 120 } } },
+        { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: "Calibri", size: 24, bold: true }, paragraph: { spacing: { before: 240, after: 120 } } },
+        { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: "Calibri", size: 22, bold: true }, paragraph: { spacing: { before: 120, after: 60 } } },
       ],
     },
-    sections: [
-      {
-        properties: {},
-        children,
-      },
-    ],
+    sections: [{ properties: {}, children }],
   });
 }
 
 const SCHEMA_VERSION = "1.0.0";
 
-/**
- * Build the JSON sibling payload. If `metadataPath` is provided and exists,
- * load and merge it; otherwise emit a minimal stub. In all cases the
- * `schema_version`, `generated.at`, and `report` fields are populated from
- * the converter so a sibling always exists for downstream consumers.
- */
 function buildJsonSibling(metadataPath, docxOutPath) {
   const docxBase = basename(docxOutPath).replace(/\.docx$/i, "");
   const docxFile = basename(docxOutPath);
@@ -377,14 +325,80 @@ function buildJsonSibling(metadataPath, docxOutPath) {
   if (!payload.generated || typeof payload.generated !== "object") payload.generated = {};
   if (!payload.generated.at) payload.generated.at = nowIso;
 
-  payload.report = {
-    ...(payload.report || {}),
-    docx_basename: docxBase,
-    docx_path_relative: docxFile,
-  };
-
+  payload.report = { ...(payload.report || {}), docx_basename: docxBase, docx_path_relative: docxFile };
   return payload;
 }
+
+// ---- HTML fallback (pure string templating; no dependencies) --------------------
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function inlineToHtml(text) {
+  return parseInlineFormatting(text)
+    .map((r) => {
+      let html = escapeHtml(r.text);
+      if (r.bold) html = `<strong>${html}</strong>`;
+      if (r.italic) html = `<em>${html}</em>`;
+      return html;
+    })
+    .join("");
+}
+
+/** Render the same parsed blocks to a self-contained HTML document that Word opens
+ *  cleanly (File → Open). Used only when the docx engine is unavailable. */
+function blocksToHtml(blocks, title = "ExChek Report") {
+  const body = [];
+  let i = 0;
+  while (i < blocks.length) {
+    const b = blocks[i];
+    if (b.type === "list") {
+      const items = [];
+      while (i < blocks.length && blocks[i].type === "list") {
+        items.push(`<li>${inlineToHtml(blocks[i].text || "")}</li>`);
+        i++;
+      }
+      body.push(`<ul>${items.join("")}</ul>`);
+      continue;
+    }
+    switch (b.type) {
+      case "heading1": body.push(`<h1>${inlineToHtml(b.text || "")}</h1>`); break;
+      case "heading2": body.push(`<h2>${inlineToHtml(b.text || "")}</h2>`); break;
+      case "heading3": body.push(`<h3>${inlineToHtml(b.text || "")}</h3>`); break;
+      case "table": {
+        const cols = Math.max(...b.rows.map((r) => r.length));
+        const rows = b.rows
+          .map((cells) => {
+            const padded = cells.concat(Array(cols - cells.length).fill(""));
+            return `<tr>${padded.map((c) => `<td>${inlineToHtml(c)}</td>`).join("")}</tr>`;
+          })
+          .join("");
+        body.push(`<table>${rows}</table>`);
+        break;
+      }
+      default: body.push(`<p>${inlineToHtml(b.text || "")}</p>`);
+    }
+    i++;
+  }
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>
+body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.3;max-width:7.5in;margin:1in auto;}
+h1{font-size:14pt;} h2{font-size:12pt;} h3{font-size:11pt;}
+table{border-collapse:collapse;width:100%;margin:8pt 0;}
+td{border:1px solid #999;padding:4pt 6pt;vertical-align:top;}
+</style></head><body>
+${body.join("\n")}
+</body></html>
+`;
+}
+
+// ---- CLI -------------------------------------------------------------------------
 
 async function main() {
   const mdPath = process.argv[2];
@@ -403,26 +417,60 @@ async function main() {
     process.exit(1);
   }
 
+  md = stripAstral(md); // defense against the docx<9.6.0 corruption class
   const blocks = parseReportToBlocks(md);
-  const doc = buildDocument(blocks);
-  const buffer = await Packer.toBuffer(doc);
-
-  const outPath = resolved.replace(/\.md$/i, ".docx");
-  writeFileSync(outPath, buffer);
-  console.log("Wrote:", outPath);
-
+  const docxOutPath = resolved.replace(/\.md$/i, ".docx");
+  const htmlOutPath = resolved.replace(/\.md$/i, ".html");
   const jsonOutPath = resolved.replace(/\.md$/i, ".json");
+
+  // Always write the JSON sibling first so the structured record exists even if
+  // document rendering fails. A JSON failure is logged but never aborts the run.
   try {
-    const jsonPayload = buildJsonSibling(metadataPath, outPath);
+    const jsonPayload = buildJsonSibling(metadataPath, docxOutPath);
     writeFileSync(jsonOutPath, JSON.stringify(jsonPayload, null, 2) + "\n");
     console.log("Wrote:", jsonOutPath);
   } catch (e) {
     console.error("JSON sibling not written:", e.message);
-    process.exit(1);
+  }
+
+  // Try the docx engine; on ANY failure (missing/broken install, render error),
+  // fall back to a self-contained HTML the user can open in Word. Never crash.
+  let docxOk = false;
+  try {
+    // Load docx via createRequire (CJS), NOT `import("docx")`: ESM resolution ignores
+    // NODE_PATH, but the MCP server points the spawned converter at the installed docx
+    // via NODE_PATH — and CJS `require` honors it (and the upward node_modules walk).
+    const { createRequire } = await import("node:module");
+    const requireDocx = createRequire(import.meta.url);
+    ({ Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } = requireDocx("docx"));
+    try {
+      const v = requireDocx("docx/package.json").version;
+      if (compareVersion(v, MIN_DOCX_VERSION) < 0) {
+        console.error(`WARNING: docx ${v} is below ${MIN_DOCX_VERSION} (known .docx-corruption bug). Pin docx >= ${MIN_DOCX_VERSION}.`);
+      }
+    } catch { /* version probe is best-effort */ }
+    const doc = buildDocument(blocks);
+    const buffer = await Packer.toBuffer(doc);
+    writeFileSync(docxOutPath, buffer);
+    console.log("Wrote:", docxOutPath);
+    docxOk = true;
+  } catch (e) {
+    console.error("docx engine unavailable; using HTML fallback:", e.message);
+  }
+
+  if (!docxOk) {
+    const html = blocksToHtml(blocks, basename(docxOutPath).replace(/\.docx$/i, ""));
+    writeFileSync(htmlOutPath, html);
+    console.log("FALLBACK_HTML:", htmlOutPath);
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  main().catch((err) => {
+    console.error("Fatal:", err && err.message ? err.message : err);
+    process.exit(1);
+  });
+}
+
+export { parseReportToBlocks, buildDocument, buildJsonSibling, blocksToHtml, stripAstral, compareVersion };

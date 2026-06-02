@@ -2,6 +2,25 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.4.2] — 2026-06-02
+
+**Docx generator stabilization (Tier 1).** The report converter kept breaking — root-caused to a **docx version skew + a known corruption bug**, not an API change. Fixes the breakage and adds a never-fail fallback. (Tiers 2–3 — inverting to a schema-validated JSON source of truth and a frozen counsel-approved template — are planned separately.)
+
+### Fixed
+
+- **ESM ↔ `NODE_PATH` resolution mismatch (likely the biggest real-world cause).** The MCP points the spawned converter at the installed `docx` via `NODE_PATH`, but the converter used `import … from "docx"` — and **ESM `import` ignores `NODE_PATH`** (only CommonJS honors it). So on any machine where `docx` wasn't *also* in the converter's own upward `node_modules`, the import simply failed. The converter now loads `docx` via **`createRequire(...)` (CommonJS, which honors `NODE_PATH`)** against docx's CJS build, so the plugin's existing install mechanism actually works. Verified end-to-end: with `NODE_PATH` set as in production, the converter now produces a valid `.docx` (ZIP/`PK` magic).
+- **docx version skew + corruption bug.** `servers/exchek-mcp/package.json` declared `docx: ^8.5.0` while the converter pins `9.6.1`; whichever resolved first won, and **docx < 9.6.0 has a JSZip surrogate-pair bug** that corrupts any `.docx` containing a character above U+FFFF (emoji/exotic symbols an LLM may emit). Pinned the MCP server to **`docx` `9.6.1` exact** (matches the converter, above the 9.6.0 fix) and regenerated the lockfile, eliminating both the skew and the corruption exposure.
+
+### Added
+
+- **Graceful, never-fail rendering.** `report-to-docx.mjs` now imports `docx` **dynamically** and wraps the render: on any failure (missing/broken install, render error) it produces a self-contained **HTML** report (opens in Word via File → Open) instead of crashing. The JSON sibling is always written first, and on fallback the **markdown source is kept too** — the user always gets a complete, openable deliverable. The MCP `report_to_docx` returns `{ fallback: true, html_path, md_path, json_path, note }` so the skill can tell the user plainly.
+- **docx version self-check** (warns when the resolved `docx` is below 9.6.0) and an **astral-character strip** (removes >U+FFFF codepoints before rendering — defense-in-depth against the corruption class; a legal memo shouldn't contain emoji anyway).
+- **`tests/docx.test.mjs`** — unit tests for the parser, the HTML fallback, and the astral strip (no `docx` needed), plus a render-and-unzip structural test (full-width DXA tables, uniform grid, heading styles, a high-Unicode canary) that **skips cleanly if `docx` isn't installed**. The converter's pure functions are now exported and `main()` is guarded so the module is importable.
+
+### Changed
+
+- MCP server `VERSION` + `package.json` aligned to 3.4.2.
+
 ## [3.4.1] — 2026-06-02
 
 **Audit-trail integrity fix + strongest model on the high-stakes reviewer.** Tuning the plugin to the latest Claude Code/model capabilities, Cowork-first (everything stays automatic — no CLI for the user).

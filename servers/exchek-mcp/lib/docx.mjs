@@ -3,7 +3,8 @@
 // argv, never a shell), and rejects paths with shell metacharacters or newlines.
 
 import { spawn } from "node:child_process";
-import { writeFile, mkdir, stat } from "node:fs/promises";
+import { writeFile, mkdir, stat, rename, unlink } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { resolve, dirname, basename, join } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
@@ -50,22 +51,48 @@ export async function convert({ markdown, metadata, output_dir, basename: name }
     p.on("close", (c) => (c === 0 ? res(c) : rej(new Error(`converter exit ${c}: ${stderr}`))));
   });
 
-  const docx = tempMd.replace(/\.tmp\.md$/, ".tmp.docx");
-  const json = tempMd.replace(/\.tmp\.md$/, ".tmp.json");
-  const finalDocx = join(outDir, `${safeBase}.docx`);
+  const tempDocx = tempMd.replace(/\.tmp\.md$/, ".tmp.docx");
+  const tempHtml = tempMd.replace(/\.tmp\.md$/, ".tmp.html");
+  const tempJson = tempMd.replace(/\.tmp\.md$/, ".tmp.json");
   const finalJson = join(outDir, `${safeBase}.json`);
 
-  const { rename, unlink } = await import("node:fs/promises");
-  await rename(docx, finalDocx);
-  try { await rename(json, finalJson); } catch { /* converter may not always emit json */ }
-  await unlink(tempMd).catch(() => {});
-  if (tempMeta) await unlink(tempMeta).catch(() => {});
-
-  const docxStat = await stat(finalDocx);
-  return {
-    docx_path: finalDocx,
-    json_path: finalJson,
-    bytes: docxStat.size,
-    exit_code: code,
+  const cleanup = async () => {
+    await unlink(tempMd).catch(() => {});
+    if (tempMeta) await unlink(tempMeta).catch(() => {});
   };
+
+  // The converter writes the JSON sibling first, then EITHER a .docx (normal) OR a
+  // .html (graceful fallback when the docx engine is unavailable). Detect which.
+  if (existsSync(tempDocx)) {
+    const finalDocx = join(outDir, `${safeBase}.docx`);
+    await rename(tempDocx, finalDocx);
+    try { await rename(tempJson, finalJson); } catch { /* converter may not always emit json */ }
+    await cleanup();
+    const docxStat = await stat(finalDocx);
+    return { docx_path: finalDocx, json_path: finalJson, bytes: docxStat.size, fallback: false, exit_code: code };
+  }
+
+  if (existsSync(tempHtml)) {
+    // Fallback: keep the HTML (opens in Word), the JSON, AND the source markdown so
+    // the user always has a complete, openable deliverable. Never a dead end.
+    const finalHtml = join(outDir, `${safeBase}.html`);
+    const finalMd = join(outDir, `${safeBase}.md`);
+    await rename(tempHtml, finalHtml);
+    try { await rename(tempJson, finalJson); } catch { /* best-effort */ }
+    await writeFile(finalMd, markdown, "utf8");
+    await cleanup();
+    const htmlStat = await stat(finalHtml);
+    return {
+      fallback: true,
+      html_path: finalHtml,
+      md_path: finalMd,
+      json_path: finalJson,
+      bytes: htmlStat.size,
+      exit_code: code,
+      note: "The Word (.docx) engine was unavailable, so ExChek produced an HTML version (opens in Microsoft Word via File → Open) plus the markdown source and the JSON record. The content is complete; only the .docx polish is missing.",
+    };
+  }
+
+  await cleanup();
+  throw new Error("converter produced no .docx or .html output");
 }
