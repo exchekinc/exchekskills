@@ -15,6 +15,9 @@ All notable changes to the **exchekskills** plugin. Follows [semver](https://sem
 ### Changed
 
 - **`exchek-skill-red-flag-assessment` rewritten to the current 29-flag Supplement No. 3** — `references/end-use-red-flag-guidance.md` regrouped into Group A (general diversion, §§1–12), Group B (semiconductor/computing/600-series/D:5, §§13–23), and Group C (Entity List/FDP/AI-weights/ownership, §§24–29), each flag traceable to its official Supp. 3 number, plain-English for the SMB audience. Added a §29 "ownership" companion section on the 50% Affiliates Rule (incl. the 2025-11-10 → 2026-11-09 suspension). `SKILL.md` flow now pulls the live list via `ecfr_full_text` and notes Groups B/C apply conditionally. `templates/Red Flag Assessment Note.md` restructured to the three groups.
+- **`exchek-skill` (classify) — AI Diffusion Rule correction.** `classification-memo-best-practices.md` no longer states the Jan-2025 "AI Diffusion" IFR is "effective May 2025." It now reflects that the framework was **rescinded May 12–13, 2025** (never took effect), replaced by BIS guidance/enforcement red flags with a replacement rule pending; that advanced-computing ECCNs (incl. live **4E091**) remain and change often; and the **2026-01-15 § 742.6 case-by-case** shift for China/Macau.
+- **Advanced-computing licensing currency** added to `exchek-skill-license` (system prompt Scope) and `exchek-skill-country-risk` (Country Groups): the § 742.6 case-by-case policy, the D:5/Macau ultimate-parent rule, and a "verify the current rule" caveat for this fast-moving area.
+- **Civil-penalty figures softened** in `exchek-skill` and `exchek-skill-csl`: hard-coded EAR "$300,000" and ITAR/OFAC "$1M/$1.3M" maximums replaced with "IEEPA/AECA statutory maximum, inflation-adjusted annually — verify current" (the caps are now higher than the figures previously shown).
 
 ### Regulatory notes (as of 2026-06-02)
 

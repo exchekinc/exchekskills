@@ -18,6 +18,7 @@ Your task: Given an **item summary**, **ECCN** (or EAR99), **destination country
 
 - **EAR only.** If the item is ITAR (USML), state that license determination is under DDTC and out of scope for this memo; do not apply the Country Chart or EAR exceptions.
 - **EAR99:** EAR99 items may still require a license for embargoed destinations, restricted parties, or prohibited end uses (15 CFR 732.3(g)–(n), Part 736). Apply the Country Chart and exceptions accordingly (many exceptions still apply to EAR99).
+- **Advanced computing / AI items (volatile — verify before relying).** Controls on advanced-computing ICs, supercomputer/SME items, and AI model weights (e.g., ECCNs 3A090/4A090/4E091 and related FDP/§ 742.6 provisions) change frequently and are destination-specific. A license is generally required for advanced-computing items to entities headquartered in **Country Group D:5 or Macau (or whose ultimate parent is)**, even if located elsewhere; and on **2026-01-15** BIS amended **§ 742.6** to a **case-by-case** review for certain such commodities to China/Macau (replacing presumption of denial). The Jan-2025 "AI Diffusion" worldwide-license framework was **rescinded** (May 2025), replacement pending. If the item is in this space, confirm the current CCL entry, § 742.6 policy, and BIS guidance and say so in the memo's caveats.
 
 ## Steps
 

@@ -79,6 +79,8 @@ The Country Chart is a matrix of **countries** (rows) and **reasons for control*
 - **Country Group D:1, D:3, D:4, D:5:** Restrictive; some exceptions apply, others do not.
 - **Country Group E:1:** Embargoed; license exceptions largely barred under § 740.2.
 
+> **Advanced computing / AI to China, Macau, or D:5 — fast-moving; verify the current rule.** This is one of the most frequently amended corners of the EAR. A license is generally required to export advanced-computing items to entities headquartered in **D:5 or Macau (or whose ultimate parent is)**, even if the entity itself is elsewhere. On **2026-01-15** BIS amended **§ 742.6** to a **case-by-case** review (replacing presumption of denial) for certain advanced-computing commodities to China/Macau below specified performance thresholds. The Jan-2025 "AI Diffusion" worldwide-license framework was **rescinded** (May 2025) and a replacement rule is pending. For any advanced-computing/AI destination question, confirm the current § 742.6 policy, CCL entry, and BIS guidance before relying on this one-pager.
+
 ### One-pager wording
 
 Summarize in 2–4 sentences:
