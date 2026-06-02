@@ -203,7 +203,7 @@ exchekskills/
 ├── agents/                   # 2 specialist agents
 ├── hooks/hooks.json          # SessionStart / PreToolUse / PostToolUse
 ├── servers/exchek-mcp/       # Local-first MCP server (Node, 14 tools); the ExChek API MCP is remote (api.exchek.us)
-├── docs/                     # SECURITY, TELEMETRY, DATA_STORAGE, DATA_SOURCES, COMMUNICATIONS_KIT, CHAMPION_KIT
+├── docs/                     # SECURITY, TELEMETRY, DATA_STORAGE, DATA_SOURCES, RULES_TRACKER, COMMUNICATIONS_KIT, CHAMPION_KIT
 ├── tests/                    # node --test suites
 ├── marketplace.json
 ├── CHANGELOG.md
@@ -227,6 +227,8 @@ Each skill folder contains:
 - [SECURITY.md](docs/SECURITY.md) — what the plugin can and cannot do on your machine, prompt-injection defenses, audit-log integrity
 - [TELEMETRY.md](docs/TELEMETRY.md) — opt-in only; ExChek never receives data
 - [DATA_STORAGE.md](docs/DATA_STORAGE.md) — where artifacts live, retention, encryption, wiping
+- [DATA_SOURCES.md](docs/DATA_SOURCES.md) — Local MCP vs ExChek API MCP, the data-source gate, what does/doesn't transit each host
+- [RULES_TRACKER.md](docs/RULES_TRACKER.md) — living watch-list of BIS/DDTC/OFAC rule changes that will require skill updates, with dates and affected skills
 - [COMMUNICATIONS_KIT.md](docs/COMMUNICATIONS_KIT.md) — copy-ready announcements for rolling ExChek out to a small team
 - [CHAMPION_KIT.md](docs/CHAMPION_KIT.md) — 30-day playbook for the ops lead becoming the export-compliance person
 

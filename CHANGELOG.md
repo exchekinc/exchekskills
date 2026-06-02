@@ -11,6 +11,7 @@ All notable changes to the **exchekskills** plugin. Follows [semver](https://sem
 - **`ecfr_full_text` tool on the local MCP** (`servers/exchek-mcp/lib/ecfr.mjs` + `index.mjs`) — fetches the full regulatory **text** of a part/appendix from `ecfr.gov` (the structure tools only return hierarchy), with latest-amendment-date resolution and a 24h cache. Part **732** added to the supported set so the red-flag skill can pull the **live Supplement No. 3** at runtime (`part: "732"`, `contains: "Supplement No. 3"`). ecfr.gov-only — api.exchek.us does not serve full text or mirror Part 732. Local server is now **14 tools**.
 - **50% Affiliates Rule guidance** added to `exchek-skill-partner-compliance` (ownership-tracing flow-down) and cross-referenced in `exchek-skill-risk-triage`. (The `exchek-skill-csl` screening best-practices already covered it.)
 - **ITAR AUKUS § 126.7 + USML-currency notes** added to `exchek-skill-jurisdiction`; an ITAR-§126.18 parallel note to `exchek-skill-deemed-export`; and an ITAR DCS/authorization (§ 123.9, § 126.7/§ 126.5) note to `exchek-skill-export-docs`.
+- **`docs/RULES_TRACKER.md`** — a living watch-list of BIS/DDTC/OFAC rule changes that will require skill updates: dated triggers (e.g. the 2026-11-09 Affiliates Rule resumption), pending rules (AI-diffusion replacement; USML Cat IV/XV/XI/IX), recurring/auto-current items (live-pulled red flags, § 742.6), and a "recently completed" log. Linked from the README.
 
 ### Changed
 
