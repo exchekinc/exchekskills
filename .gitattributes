@@ -1,0 +1,5 @@
+# Keep build artifacts and dev-only files out of `git archive` (the plugin zip is
+# built with: git archive --format=zip --prefix=exchekskills/ -o exchekskills-<ver>.zip HEAD)
+*.zip export-ignore
+.gitattributes export-ignore
+.github/ export-ignore
