@@ -21,13 +21,12 @@
         ]
       }
     ],
-    "PostToolUse": [
+    "SessionEnd": [
       {
-        "matcher": "mcp__exchek__report_to_docx",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"ts\":\"'$(date -u +%FT%TZ)'\",\"event\":\"report_emitted\"}' >> \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\""
+            "command": "CLAUDE_PLUGIN_DATA=\"${CLAUDE_PLUGIN_DATA}\" CLAUDE_PLUGIN_OPTION_AUDIT_KEY=\"${user_config.audit_key}\" node \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/lib/audit.mjs\" seal >/dev/null 2>&1 || true"
           }
         ]
       }
