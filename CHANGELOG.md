@@ -2,6 +2,50 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.3.0] — 2026-06-02
+
+**You now choose your regulatory-data source: the local MCP or the hosted ExChek API MCP.** v3.2.0 wired
+`api.exchek.us` only as a *silent* fallback inside the local server. But `api.exchek.us` is a full
+no-auth Cloudflare Workers API (v2.0.0) that **hosts its own MCP server** at
+`https://api.exchek.us/mcp` (Streamable HTTP, JSON-RPC 2.0). This release surfaces that as a first-class,
+user-selectable source behind a one-time **data-source gate**, and makes the docs accurate about what
+that means for outbound traffic.
+
+### Added
+
+- **Second MCP server `exchek-api`** in `.claude-plugin/plugin.json` — `{"type":"http","url":"https://api.exchek.us/mcp"}`.
+  Exposes 7 tools: `list_skills`, `get_skill`, `get_skill_bundle`, `get_ecfr_part`, `get_ecfr_sections`,
+  `search_ecfr_part`, `search_ecfr_title` (namespaced `mcp__exchek-api__*`). Coexists with the local stdio `exchek`.
+- **Data-source gate** in all 20 SKILL.md `⚡ Tools` blocks. Before pulling any CFR text a skill calls the new
+  local tool **`regulatory_source`** and either uses the pinned source or asks the user once
+  (**ExChek API MCP recommended**; Local MCP the alternative).
+- **`regulatory_source` userConfig** option (`ask` | `local` | `api`, default `ask`) so enterprises can pin a
+  default and skip the prompt.
+- **`regulatory_source` MCP tool** on the local server — returns `{mode, recommended, routes, options, always_local}`
+  computed from `EXCHEK_REGULATORY_SOURCE`, giving the skill an exact tool-routing map.
+- **`docs/DATA_SOURCES.md`** — the canonical explainer: the two MCPs, what does/doesn't transit each host, the
+  gate, the config knob, the tool-routing table, and the REST/MCP endpoint reference.
+
+### Changed
+
+- **`servers/exchek-mcp/lib/ecfr.mjs`**: the local server's automatic mirror fallback now covers **all 11
+  supported parts** (added 748, 762, 772 to `EXCHEK_API_PARTS`), matching `GET /api/ecfr/meta`. ecfr.gov stays
+  primary; the mirror is a *disclosed* backup — every response records `source` (`cache` / `ecfr.gov` / `api.exchek.us`).
+- **Legacy `GET https://api.exchek.us/api/ecfr/{part}` curl copy** in the data-heavy skills (classify, license,
+  country-risk, encryption, jurisdiction) reframed to the gate + MCP tools; the `exchek-setup` connectivity step
+  now tests the ExChek API MCP and surfaces the configured source.
+- **Doc accuracy fixes** in `SECURITY.md`, `DATA_STORAGE.md`, `TELEMETRY.md`, `COMMUNICATIONS_KIT.md`,
+  `CHAMPION_KIT.md`, and `README.md`: the "only ecfr.gov + trade.gov / no ExChek server in the loop" claims now
+  read accurately — by default the plugin contacts only the two government hosts; if you opt into the ExChek API
+  MCP (or the local auto-fallback fires), CFR part numbers + search terms also transit `api.exchek.us`, but never
+  your item descriptions, party names, file content, or compliance results. Telemetry remains zero.
+
+### Notes
+
+- The removed `/api/classify/*` and `/api/expert-review/*` endpoints (HTTP 410) are **not** used by any skill;
+  classification is performed in-skill from the CCL (774) and USML (121) data.
+- Part 732 (red-flag Supp. 3) is not mirrored by either source and continues to rely on ecfr.gov (unchanged).
+
 ## [3.2.0] — 2026-05-15
 
 **4 new engine skills + `api.exchek.us` as a public eCFR fallback.** v3.1.0 made the local MCP load-bearing but left a single point of failure: if `ecfr.gov` was rate-limiting or unreachable, every classification stalled. This release ports the engine-shell skills from the paid-tier plugin (analytics, onboarding, orchestrator, setup) into the public plugin and adds a backup path through our public Cloudflare cache.

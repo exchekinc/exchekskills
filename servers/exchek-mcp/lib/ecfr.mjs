@@ -1,14 +1,18 @@
 // Local-first eCFR data fetcher.
 // Primary: ecfr.gov (authoritative). Fallback: api.exchek.us (public Cloudflare
 // edge cache of the same data, no auth, no PII). Cached locally under
-// ${CLAUDE_PLUGIN_DATA}/ecfr/ for 24h.
+// ${CLAUDE_PLUGIN_DATA}/ecfr/ for 24h. The fallback is automatic and the source
+// used (cache / ecfr.gov / api.exchek.us) is recorded on every response. Users
+// who prefer the hosted path can instead select the separate "exchek-api" MCP
+// server (https://api.exchek.us/mcp) via the data-source gate.
 //
 // The eCFR developer API exposes:
 //   GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json
 //   GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json
 //   GET https://www.ecfr.gov/api/versioner/v1/full/{date}/title-{n}.xml?part={part}
 //
-// The ExChek API mirror exposes the part subtree directly:
+// The ExChek API mirror exposes the part subtree directly, for all 11 supported
+// parts (121, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774):
 //   GET https://api.exchek.us/api/ecfr/{part}
 //
 // We cache structure JSON for 24 hours, then refresh.
@@ -22,8 +26,10 @@ const TITLE_FOR_PART = {
   "748": 15, "762": 15, "772": 15, "774": 15,
 };
 
-// Parts mirrored by api.exchek.us (per GET / endpoint listing).
-const EXCHEK_API_PARTS = new Set(["121", "734", "738", "740", "742", "744", "746", "774"]);
+// Parts mirrored by api.exchek.us (per GET /api/ecfr/meta — all 11 supported parts).
+export const EXCHEK_API_PARTS = new Set([
+  "121", "734", "738", "740", "742", "744", "746", "748", "762", "772", "774",
+]);
 const EXCHEK_API_BASE = "https://api.exchek.us";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;

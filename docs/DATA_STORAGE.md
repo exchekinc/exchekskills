@@ -69,5 +69,6 @@ The plugin will generate a new key and start a new chain on next use.
 
 ## What does not leave your machine
 
-- Item descriptions, party names, ECCNs, country codes — none of this is ever sent anywhere except `data.trade.gov` (when you explicitly screen a party) and `www.ecfr.gov` (regulatory text only — you never send your data to them, only fetch theirs).
+- Item descriptions, party names, file content, ECCNs, and your compliance results stay on your machine. The only thing sent to a screening provider is the **party name/terms you choose to screen**, to `data.trade.gov`, when you explicitly screen.
+- Regulatory text is **fetched, not sent**: the plugin pulls public CFR parts from `www.ecfr.gov` (Local MCP) or, if you choose the **ExChek API MCP** at the data-source gate (or the local server falls back when ecfr.gov is down), from `api.exchek.us`. Either way the request carries only a **CFR part number or search term** — never your item or party data. Choose **Local MCP** / set `regulatory_source` to `local` if you want regulatory lookups to touch only `ecfr.gov`. See [DATA_SOURCES.md](DATA_SOURCES.md).
 - The conversation between you and the AI runs through Cowork or Claude Code. Whether that conversation is used for model training depends on the **AI tier you attested to** in `/plugin config`. ExChek records the tier you claimed in every report so a future auditor can see what protections were in place.

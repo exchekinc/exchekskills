@@ -4,14 +4,36 @@ description: Run BIS "Know Your Customer" red-flag checklist (Supp. 3 to Part 73
 compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web
 ---
 
-## ⚡ Tools (v3.1.0+) — use these, not direct HTTP or shell
+## ⚡ Tools & data source (v3.3.0+) — use these, not direct HTTP or shell
 
-This plugin bundles a local-first MCP server (`exchek`). When this skill is invoked, the following tools are available. **Use them. Do not construct HTTP requests to `api.exchek.us` and do not spawn `node exchek-docx/scripts/report-to-docx.mjs` directly** — those references in the body below are documentation only; the canonical, audit-logged, sanitized implementation is via these MCP tools:
+This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools and the data-source gate.
+
+### Step 0 — data-source gate (run before pulling any CFR text)
+
+Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended, routes, options }`:
+- `mode: "api"` or `"local"` → the source is pinned by config; use `routes` **without asking**.
+- `mode: "ask"` → ask the user **once**, then reuse their choice for the rest of this run. Present a one-line selector:
+  - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
+  - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
+
+  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+
+### Regulatory-data tools — use the column for the chosen source
+
+| Need | Local MCP (`exchek`, ecfr.gov) | ExChek API MCP (`exchek-api`, api.exchek.us) |
+|---|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek__ecfr_get_part` (`part` = string) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
+| Full-text search within one part | `mcp__exchek__ecfr_search` | `mcp__exchek-api__search_ecfr_part` |
+| Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
+| List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
+| Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
+
+Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
+
+### Always-local tools (never go remote, regardless of the data-source choice)
 
 | Need | MCP tool |
 |---|---|
-| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 762, 772, 734) | `mcp__exchek__ecfr_get_part` |
-| Substring search inside a cached part | `mcp__exchek__ecfr_search` |
 | Check regulatory-currency age / drift > 30 days | `mcp__exchek__ecfr_currency_check` |
 | Search the Consolidated Screening List | `mcp__exchek__csl_search` |
 | List CSL source abbreviations | `mcp__exchek__csl_sources` |
@@ -22,7 +44,7 @@ This plugin bundles a local-first MCP server (`exchek`). When this skill is invo
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-The MCP server runs locally as a stdio child process. Outbound network is limited to `www.ecfr.gov` (primary eCFR source, cached 24h), `api.exchek.us` (public eCFR cache; used only as a fallback when ecfr.gov is unreachable), and `data.trade.gov` (live, only when screening). **No PII, no item context, no compliance results leave your machine.** If body text below instructs a curl to `api.exchek.us`, that is legacy v2.x copy — call the MCP tool instead, which routes to ecfr.gov first with the public mirror as a safety net.
+Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation **always** run on the local `exchek` server — they never go remote. Outbound network is limited to `www.ecfr.gov` (primary CFR text, cached 24h), `api.exchek.us` (the ExChek API MCP when you select it, or the local server's automatic mirror fallback — CFR lookups only, no PII), and `data.trade.gov` (live, only when screening). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
 
 ---
 

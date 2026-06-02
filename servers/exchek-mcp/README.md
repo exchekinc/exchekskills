@@ -1,20 +1,26 @@
 # exchek-mcp
 
-Local-first MCP server bundled with the **exchekskills** plugin (v3.0.0).
+Local-first MCP server bundled with the **exchekskills** plugin (v3.3.0). This is the *local* of the
+plugin's two data sources; the other is the hosted **ExChek API MCP** (`exchek-api` →
+`https://api.exchek.us/mcp`), selectable at the data-source gate. See
+[../../docs/DATA_SOURCES.md](../../docs/DATA_SOURCES.md).
 
-Outbound network is limited to two authoritative sources:
+This server's outbound network:
 
 | Host | Why |
 |---|---|
-| `www.ecfr.gov` | Live regulatory text (15 CFR & 22 CFR parts). Cached for 24h. |
+| `www.ecfr.gov` | Live regulatory text (15 CFR & 22 CFR parts), **primary**. Cached for 24h. |
+| `api.exchek.us` | Public eCFR mirror, used **only as an automatic fallback** when `ecfr.gov` is unreachable. The `source` used is recorded on every `ecfr_get_part` response — and it carries only a CFR part number, no PII. |
 | `data.trade.gov` | Live Consolidated Screening List. Cannot be cached — screening must be live. |
 
-There is **no ExChek-hosted dependency**. Even if `api.exchek.us` is offline, every tool keeps working.
+If you want regulatory lookups to touch *only* `ecfr.gov`, note the fallback fires only when ecfr.gov is
+down; choosing the **Local** source at the gate does not call ExChek unless ecfr.gov is unreachable.
 
 ## Tools
 
 See `index.mjs` for the full list and JSON schemas. Highlights:
 
+- `regulatory_source` — reports the configured data-source policy (`ask`/`local`/`api`) + tool-routing map.
 - `ecfr_get_part`, `ecfr_search`, `ecfr_currency_check` — regulatory data + drift detection.
 - `csl_search`, `csl_sources` — live screening (needs `trade_gov_api_key` plugin config).
 - `sanitize_input` — zero-width / bidi / homoglyph / injection scrubber. Skills must call this on every user-supplied field.

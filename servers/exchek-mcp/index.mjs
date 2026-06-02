@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * ExChek local-first MCP server (v3.0.0).
+ * ExChek local-first MCP server (v3.3.0).
  *
  * Tools exposed:
+ *   - regulatory_source        Report the configured CFR data-source policy (ask/local/api) + routing map.
  *   - ecfr_get_part            Fetch (and cache) eCFR part structure from ecfr.gov.
  *   - ecfr_search              Substring search inside a cached part.
  *   - ecfr_currency_check      Compute regulatory-currency age and drift warning.
@@ -16,8 +17,11 @@
  *   - report_to_docx           Convert a markdown report to .docx + .json sibling.
  *   - cui_gate                 Record the CUI/classified gate response.
  *
- * Local-first: only outbound calls are to ecfr.gov (regulatory data) and
- * data.trade.gov (CSL screening). No ExChek-hosted dependency.
+ * Local-first: this server's outbound calls are to ecfr.gov (regulatory data, primary),
+ * api.exchek.us (public eCFR mirror, used only as an automatic fallback when ecfr.gov is
+ * unreachable — the source is recorded on every response), and data.trade.gov (CSL screening).
+ * Users who prefer the hosted path can select the separate "exchek-api" MCP server
+ * (https://api.exchek.us/mcp) via the data-source gate; see the regulatory_source tool.
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -33,10 +37,17 @@ import { sanitize, isBlocking } from "./lib/sanitize.mjs";
 import * as audit from "./lib/audit.mjs";
 import { validateDisclosure } from "./lib/disclosure.mjs";
 import { convert as docxConvert } from "./lib/docx.mjs";
+import { resolveRegulatorySource } from "./lib/datasource.mjs";
 
-const VERSION = "3.0.0";
+const VERSION = "3.3.0";
 
 const TOOLS = [
+  {
+    name: "regulatory_source",
+    description:
+      "Report the configured regulatory-data source policy so a skill can decide where to pull CFR text. Call this BEFORE pulling any eCFR/CFR data. Returns {mode, recommended, routes, note}. mode is 'ask' (present the gate to the user — ExChek API recommended), 'api' (use the hosted exchek-api MCP), or 'local' (use this server's ecfr_* tools). routes names the exact tool to use for each operation under the active mode. Screening, sanitization, audit, disclosure, and report generation always stay on this local server regardless of mode.",
+    inputSchema: { type: "object", properties: {} },
+  },
   {
     name: "ecfr_get_part",
     description:
@@ -187,6 +198,9 @@ const TOOLS = [
 ];
 
 const HANDLERS = {
+  async regulatory_source() {
+    return resolveRegulatorySource(process.env.EXCHEK_REGULATORY_SOURCE);
+  },
   async ecfr_get_part(args) {
     const out = await ecfr.getPart(args.part, { force_refresh: !!args.force_refresh });
     return { source: out.source, part: out.part, title: out.title, fetched_at: out.fetched_at, stale: out.stale, structure: out.body };

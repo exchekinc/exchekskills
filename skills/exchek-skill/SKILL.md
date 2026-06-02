@@ -4,14 +4,36 @@ description: Classify export items for ECCN (BIS/ITAR) using regulatory data and
 compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web
 ---
 
-## ⚡ Tools (v3.1.0+) — use these, not direct HTTP or shell
+## ⚡ Tools & data source (v3.3.0+) — use these, not direct HTTP or shell
 
-This plugin bundles a local-first MCP server (`exchek`). When this skill is invoked, the following tools are available. **Use them. Do not construct HTTP requests to `api.exchek.us` and do not spawn `node exchek-docx/scripts/report-to-docx.mjs` directly** — those references in the body below are documentation only; the canonical, audit-logged, sanitized implementation is via these MCP tools:
+This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools and the data-source gate.
+
+### Step 0 — data-source gate (run before pulling any CFR text)
+
+Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended, routes, options }`:
+- `mode: "api"` or `"local"` → the source is pinned by config; use `routes` **without asking**.
+- `mode: "ask"` → ask the user **once**, then reuse their choice for the rest of this run. Present a one-line selector:
+  - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
+  - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
+
+  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+
+### Regulatory-data tools — use the column for the chosen source
+
+| Need | Local MCP (`exchek`, ecfr.gov) | ExChek API MCP (`exchek-api`, api.exchek.us) |
+|---|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek__ecfr_get_part` (`part` = string) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
+| Full-text search within one part | `mcp__exchek__ecfr_search` | `mcp__exchek-api__search_ecfr_part` |
+| Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
+| List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
+| Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
+
+Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
+
+### Always-local tools (never go remote, regardless of the data-source choice)
 
 | Need | MCP tool |
 |---|---|
-| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 762, 772, 734) | `mcp__exchek__ecfr_get_part` |
-| Substring search inside a cached part | `mcp__exchek__ecfr_search` |
 | Check regulatory-currency age / drift > 30 days | `mcp__exchek__ecfr_currency_check` |
 | Search the Consolidated Screening List | `mcp__exchek__csl_search` |
 | List CSL source abbreviations | `mcp__exchek__csl_sources` |
@@ -22,7 +44,7 @@ This plugin bundles a local-first MCP server (`exchek`). When this skill is invo
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-The MCP server runs locally as a stdio child process. Outbound network is limited to `www.ecfr.gov` (primary eCFR source, cached 24h), `api.exchek.us` (public eCFR cache; used only as a fallback when ecfr.gov is unreachable), and `data.trade.gov` (live, only when screening). **No PII, no item context, no compliance results leave your machine.** If body text below instructs a curl to `api.exchek.us`, that is legacy v2.x copy — call the MCP tool instead, which routes to ecfr.gov first with the public mirror as a safety net.
+Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation **always** run on the local `exchek` server — they never go remote. Outbound network is limited to `www.ecfr.gov` (primary CFR text, cached 24h), `api.exchek.us` (the ExChek API MCP when you select it, or the local server's automatic mirror fallback — CFR lookups only, no PII), and `data.trade.gov` (live, only when screening). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
 
 ---
 
@@ -35,18 +57,14 @@ Classify items for U.S. export control (15 CFR Part 774, 22 CFR Part 121) using 
 
 Invoke this skill when the user asks to classify an item for export, determine ECCN or jurisdiction, or check license requirements. Example triggers: "Classify this item for export", "What's the ECCN for…?", "Is this ITAR or EAR?", "Export classification for [product]", "Do we need a license for shipping to [country]?" If the user already has a jurisdiction memo from the ExChek Jurisdiction skill (exchek-jurisdiction), they can provide it and proceed to ECCN/USML.
 
-## Regulatory data (snapshots / eCFR)
+## Regulatory data (Part 774 CCL + Part 121 USML)
 
-To classify, obtain Part 774 (CCL) and Part 121 (USML) structure data using one of these options:
+To classify, obtain Part 774 (CCL) and Part 121 (USML) structure through the **data-source gate** (see the ⚡ Tools block above): call `mcp__exchek__regulatory_source`, then pull each part with the tool for the chosen source:
 
-- **ExChek API (recommended):** No auth, no payment.
-  - `GET https://api.exchek.us/api/ecfr/774` — Part 774 (CCL) structure JSON.
-  - `GET https://api.exchek.us/api/ecfr/121` — Part 121 (USML) structure JSON.
-- **eCFR developer API:** No API key. Use when ExChek is unavailable.
-  - Structure: `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` (extract Part 774), `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json` (extract Part 121).
-  - JSON shape: nodes have `identifier`, `label`, `children`; traverse to find sections and cite specific parts.
+- **ExChek API MCP (recommended):** `mcp__exchek-api__get_ecfr_part` with `part: 774`, then `part: 121`.
+- **Local MCP:** `mcp__exchek__ecfr_get_part` with `part: "774"`, then `part: "121"`.
 
-Use the structure to apply Order of Review and cite specific parts. See [references/reference.md](references/reference.md) for details.
+Both return the same structure (nodes have `identifier`, `label`, `children`); traverse it to apply Order of Review and cite specific sections. Underlying sources are ExChek's edge cache at `api.exchek.us` or `www.ecfr.gov` directly; the local server falls back to the mirror automatically if ecfr.gov is unreachable. See [references/reference.md](references/reference.md) for details.
 
 ## Classification prompts
 
@@ -91,7 +109,7 @@ You **must** get **explicit user confirmation** on jurisdiction (BIS vs ITAR) an
 0. **CUI/Classified check** — At the very start, before asking about report folder or collecting item info, show a short warning and present a selector. Say something like: "Before we start: Does the item or any information you'll share involve **Controlled Unclassified Information (CUI)** or **classified information**? Please choose: **Yes** (this is CUI/classified), **No** (it is not), or **Don't know**." Then act according to **CUI/Classified selector** below (Yes → route to CUI/classified guidance and do not continue with cloud classification; No → continue to step 1; Don't know → quick brief from [references/cui-classified.md](references/cui-classified.md), then re-ask to proceed or use on-prem).
 1. **Establish report folder and format (when you can write files)** — If you are in CoWork, Desktop with file access, Cursor, or Claude Code: ask the user which folder to save reports in; if none, suggest creating `ExChek Reports` in the workspace and create it with their approval. Also ask: "Are you on **Mac** or **Windows**? Do you want the report as **Word (.docx)** or **Apple Pages (.pages)**?" Store the choices (platform: mac | windows, format: docx | pages) for use after building the report. If you are on Claude web or cannot write files, skip this and plan to output the full report in chat and tell the user to save it manually.
 2. **Collect item info** — If the user wants to pull item data from a CRM (HubSpot, Salesforce, or another), determine how they will provide data: (1) They have a HubSpot/Salesforce/CRM skill or connector installed — ask for object type and record ID, then use that connector (or the agent's CRM API access) to fetch the record and map to the classification template. (2) They will paste data — ask for object type and ID and for them to paste the relevant fields. (3) They have API keys — see [references/crm-pull.md](references/crm-pull.md) for endpoints and field mapping. Fill the template from the CRM data; then collect any missing fields from the user. If the user has a spec sheet, datasheet, or other document, ask for the file path or use the file they have already shared. In environments with file access (CoWork, Desktop, Cursor, Claude Code), read the file and extract item description and specs to pre-fill the template. In Claude web or environments without file access, ask the user to paste relevant excerpts. Ask the user for: item description, technical specifications, performance parameters (optional), valuation, units, HTS Code, Schedule B number (optional), end user, end use, destination country, intended use, and notes. Optionally ask for classification notes (internal/compliance or reclassification reason). Use [prompts/classification-user-template.md](prompts/classification-user-template.md). When a source document was used, set SOURCE_DOCUMENT (e.g. filename or "Pasted excerpt") and SOURCE_EXCERPTS in the report; otherwise use "Not applicable". CRM pull: see [references/crm-pull.md](references/crm-pull.md) for HubSpot, Salesforce, and generic connector behavior.
-3. **Get regulatory data (optional but recommended)** — Call `GET https://api.exchek.us/api/ecfr/774` and `GET https://api.exchek.us/api/ecfr/121` to retrieve Part 774 and Part 121 structure. If the API returns 503, use the eCFR URLs above and extract the relevant part from each title.
+3. **Get regulatory data (optional but recommended)** — Run the data-source gate (`mcp__exchek__regulatory_source`), then retrieve Part 774 and Part 121 structure via the chosen source's tool (`mcp__exchek-api__get_ecfr_part` or `mcp__exchek__ecfr_get_part`). See the ⚡ Tools block above for the routing table. Both sources return the same JSON; if neither is reachable, fall back to the eCFR developer API (`https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` and `…/title-22.json`).
 4. **Classify** — Run classification using [prompts/classification-system.md](prompts/classification-system.md) and the collected item info. Classification must follow **Supplement No. 4 to Part 774** (Commerce Control List Order of Review) and **15 CFR 772.1** for "specially designed" (catch/release). When multiple ECCNs could apply: 600 series and 9x515 take precedence; civilian-use signals favor **1A995 over 1A004**. Use the regulatory data to apply Order of Review and cite sections. See [references/order-of-review.md](references/order-of-review.md) for a concise OOR reference. Present jurisdiction (BIS vs ITAR) and rationale to the user; **ask for confirmation** before proceeding. Then present the proposed ECCN and justification; **ask for approval** (or feedback to refine). Repeat until the user explicitly approves the classification.
 5. **Human-in-the-loop confirmation** — Before finalizing the report, present a summary of inputs and the preliminary determination(s) and ask: "Confirm inputs and this determination before I generate the final report? (yes / revise / cancel)". Do **not** skip this step. Record the user's confirmation timestamp for inclusion in the AI Tool Usage & Currency Disclosure section of the report. This is in **addition to** (not a replacement for) the separate jurisdiction (BIS vs ITAR) and ECCN/classification approvals captured in step 4.
 6. **Build the report** — After the user approves, build the DDTC/DOJ/BIS audit-ready memorandum by filling [templates/Classification Report.md](templates/Classification%20Report.md) (all 12 sections; docx/pages-ready). **Do not call any API to generate or store the report.** If you can write files: write the filled report content to a **temporary** .md file in the folder from step 1 (e.g. `.ExChek-Report-temp.md`), run the **ExChek Document Converter** from the workspace root: `node exchek-docx/scripts/report-to-docx.mjs "<full-path-to-temp.md>"` (run `npm install --prefix exchek-docx/scripts` once if needed; use `exchek-skill-docx` in the private repo if different). The script creates a .docx next to the temp .md. Rename that .docx to `ExChek-Report-YYYY-MM-DD-ShortItemName.docx`, then delete the temp .md. **Do not save or leave any .md report file in the user's folder** — the user receives only the .docx. Give the user the path to the .docx and platform/format instructions per **Report format (Mac/Windows)** below. If the ExChek Document Converter skill is not available, output the full report in chat. If you cannot write files (e.g. Claude web): output the full report in chat and instruct the user to save it to their compliance records for audit retention.
