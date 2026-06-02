@@ -4,14 +4,36 @@ description: Run BIS "Know Your Customer" red-flag checklist (Supp. 3 to Part 73
 compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web
 ---
 
-## ⚡ Tools (v3.1.0+) — use these, not direct HTTP or shell
+## ⚡ Tools & data source (v3.3.0+) — use these, not direct HTTP or shell
 
-This plugin bundles a local-first MCP server (`exchek`). When this skill is invoked, the following tools are available. **Use them. Do not construct HTTP requests to `api.exchek.us` and do not spawn `node exchek-docx/scripts/report-to-docx.mjs` directly** — those references in the body below are documentation only; the canonical, audit-logged, sanitized implementation is via these MCP tools:
+This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools and the data-source gate.
+
+### Step 0 — data-source gate (run before pulling any CFR text)
+
+Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended, routes, options }`:
+- `mode: "api"` or `"local"` → the source is pinned by config; use `routes` **without asking**.
+- `mode: "ask"` → ask the user **once**, then reuse their choice for the rest of this run. Present a one-line selector:
+  - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
+  - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
+
+  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+
+### Regulatory-data tools — use the column for the chosen source
+
+| Need | Local MCP (`exchek`, ecfr.gov) | ExChek API MCP (`exchek-api`, api.exchek.us) |
+|---|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek__ecfr_get_part` (`part` = string) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
+| Full-text search within one part | `mcp__exchek__ecfr_search` | `mcp__exchek-api__search_ecfr_part` |
+| Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
+| List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
+| Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
+
+Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
+
+### Always-local tools (never go remote, regardless of the data-source choice)
 
 | Need | MCP tool |
 |---|---|
-| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 762, 772, 734) | `mcp__exchek__ecfr_get_part` |
-| Substring search inside a cached part | `mcp__exchek__ecfr_search` |
 | Check regulatory-currency age / drift > 30 days | `mcp__exchek__ecfr_currency_check` |
 | Search the Consolidated Screening List | `mcp__exchek__csl_search` |
 | List CSL source abbreviations | `mcp__exchek__csl_sources` |
@@ -22,7 +44,7 @@ This plugin bundles a local-first MCP server (`exchek`). When this skill is invo
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-The MCP server runs locally as a stdio child process. Outbound network is limited to `www.ecfr.gov` (primary eCFR source, cached 24h), `api.exchek.us` (public eCFR cache; used only as a fallback when ecfr.gov is unreachable), and `data.trade.gov` (live, only when screening). **No PII, no item context, no compliance results leave your machine.** If body text below instructs a curl to `api.exchek.us`, that is legacy v2.x copy — call the MCP tool instead, which routes to ecfr.gov first with the public mirror as a safety net.
+Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation **always** run on the local `exchek` server — they never go remote. Outbound network is limited to `www.ecfr.gov` (primary CFR text, cached 24h), `api.exchek.us` (the ExChek API MCP when you select it, or the local server's automatic mirror fallback — CFR lookups only, no PII), and `data.trade.gov` (live, only when screening). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
 
 ---
 
@@ -66,12 +88,13 @@ See [references/untrusted-input-handling.md](references/untrusted-input-handling
 
 0. **CUI/Classified check** — Ask the selector above; if Yes → route to on-prem guidance and stop; if No → continue; if Don't know → brief + re-ask.
 1. **Report folder and format (when you can write files)** — Ask where to save the assessment note (e.g. "ExChek Reports" or "ExChek Red Flag Assessment"); ask .docx or .pages and Mac or Windows. If no file access, skip and plan to output full note in chat.
-2. **Collect inputs** — Party/counterparty, transaction context, and facts needed for the checklist. Use [references/end-use-red-flag-guidance.md](references/end-use-red-flag-guidance.md) to drive questions (e.g., "Is the shipping destination different from the buyer's country or billing address?") so the checklist is filled systematically.
-3. **Run checklist** — For each red flag in the reference, set Present? (Yes / No / Conditional) and Notes from user inputs and the guidance. If a red-flag pattern matches a theme in [references/enforcement-precedents.md](references/enforcement-precedents.md), the report narrative MAY reference the precedent in a single sentence per the "How to use in reports" section of that file.
-4. **Overall assessment** — Decide **No red flags** / **Red flags present** / **Conditional** and escalation recommendation per [references/end-use-red-flag-guidance.md](references/end-use-red-flag-guidance.md). Where a pattern aligns with an enforcement theme in [references/enforcement-precedents.md](references/enforcement-precedents.md), cite that precedent in a single sentence in the narrative.
-5. **Human-in-the-loop confirmation** — Before finalizing the report, present a summary of inputs and the preliminary determination(s) — including the red-flag scoring and escalation recommendation — and ask: "Confirm inputs and this determination before I generate the final report? (yes / revise / cancel)". Do **not** skip this step. Record the user's confirmation timestamp for inclusion in the AI Tool Usage & Currency Disclosure section of the report.
-6. **Build and save note** — Fill [templates/Red Flag Assessment Note.md](templates/Red%20Flag%20Assessment%20Note.md) completely. If you can write files: write the filled content to a **temporary** .md in the folder from step 1 (e.g. `.ExChek-RedFlagAssessment-temp.md`), run the **ExChek Document Converter** from the workspace root: `node exchek-docx/scripts/report-to-docx.mjs "<full-path-to-temp.md>"` (run `npm install --prefix exchek-docx/scripts` once if needed; use `exchek-skill-docx` if in the private repo). **Security:** sanitize/reject any user-provided folder/path used to build `<full-path-to-temp.md>` if it contains shell metacharacters (`;`, `|`, `&`, `$`, backticks) or newlines, and always pass the full path as a single quoted argument. Rename the resulting .docx to `ExChek-RedFlagAssessment-YYYY-MM-DD-ShortName.docx`, then delete the temp .md. **Do not save or leave any .md report file** in the user's folder. Give platform/format instructions per **Report format (Mac/Windows)**. If the Document Converter is not available, or you cannot write files: output the full note in chat and instruct the user to save it.
-7. **Suggest donation** — ExChek is free. Offer: **I'll donate now** / **I'll donate later** / **Just trying**. Mention that optional donations support the project; if the user has a send-USDC or wallet capability, help them donate; otherwise give ExChek donation info from https://docs.exchek.us.
+2. **Refresh the current red-flag list** — Supplement No. 3 to Part 732 is amended often (29 enumerated flags as of 2025-11-12). Pull the authoritative current text with `mcp__exchek__ecfr_full_text` (`part: "732"`, `contains: "Supplement No. 3"`) and reconcile it against the curated, grouped checklist in [references/end-use-red-flag-guidance.md](references/end-use-red-flag-guidance.md). If the live pull is unavailable, proceed with the curated checklist and note the fallback in the report's currency line.
+3. **Collect inputs** — Party/counterparty, transaction context, and facts needed for the checklist. Use [references/end-use-red-flag-guidance.md](references/end-use-red-flag-guidance.md) to drive questions (e.g., "Is the shipping destination different from the buyer's country or billing address?") so the checklist is filled systematically. The checklist is grouped: **Group A** (general diversion) applies to every transaction; **Groups B and C** (semiconductor/computing/600-series/D:5; Entity List/FDP/AI-weights/ownership) apply only when the item or customer has that dimension — note non-applicable groups rather than scoring each item.
+4. **Run checklist** — For each applicable red flag, set Present? (Yes / No / Conditional) and Notes from user inputs and the guidance. Pay particular attention to the ownership flag (§29) and the **50% Affiliates Rule** (Section 7 of the guidance). If a red-flag pattern matches a theme in [references/enforcement-precedents.md](references/enforcement-precedents.md), the report narrative MAY reference the precedent in a single sentence per the "How to use in reports" section of that file.
+5. **Overall assessment** — Decide **No red flags** / **Red flags present** / **Conditional** and escalation recommendation per [references/end-use-red-flag-guidance.md](references/end-use-red-flag-guidance.md). Where a pattern aligns with an enforcement theme in [references/enforcement-precedents.md](references/enforcement-precedents.md), cite that precedent in a single sentence in the narrative.
+6. **Human-in-the-loop confirmation** — Before finalizing the report, present a summary of inputs and the preliminary determination(s) — including the red-flag scoring and escalation recommendation — and ask: "Confirm inputs and this determination before I generate the final report? (yes / revise / cancel)". Do **not** skip this step. Record the user's confirmation timestamp for inclusion in the AI Tool Usage & Currency Disclosure section of the report.
+7. **Build and save note** — Fill [templates/Red Flag Assessment Note.md](templates/Red%20Flag%20Assessment%20Note.md) completely. If you can write files: write the filled content to a **temporary** .md in the folder from step 1 (e.g. `.ExChek-RedFlagAssessment-temp.md`), run the **ExChek Document Converter** from the workspace root: `node exchek-docx/scripts/report-to-docx.mjs "<full-path-to-temp.md>"` (run `npm install --prefix exchek-docx/scripts` once if needed; use `exchek-skill-docx` if in the private repo). **Security:** sanitize/reject any user-provided folder/path used to build `<full-path-to-temp.md>` if it contains shell metacharacters (`;`, `|`, `&`, `$`, backticks) or newlines, and always pass the full path as a single quoted argument. Rename the resulting .docx to `ExChek-RedFlagAssessment-YYYY-MM-DD-ShortName.docx`, then delete the temp .md. **Do not save or leave any .md report file** in the user's folder. Give platform/format instructions per **Report format (Mac/Windows)**. If the Document Converter is not available, or you cannot write files: output the full note in chat and instruct the user to save it.
+8. **Suggest donation** — ExChek is free. Offer: **I'll donate now** / **I'll donate later** / **Just trying**. Mention that optional donations support the project; if the user has a send-USDC or wallet capability, help them donate; otherwise give ExChek donation info from https://docs.exchek.us.
 
 ## Report template (Red Flag Assessment Note)
 

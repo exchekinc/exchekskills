@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
-  "version": "3.2.0",
-  "description": "ExChek for SMB manufacturers — 20 export-compliance skills + a local-first MCP server. Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
+  "version": "3.4.0",
+  "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
     "email": "matt@exchek.us",
@@ -43,8 +43,13 @@
         "NODE_PATH": "${CLAUDE_PLUGIN_DATA}/node_modules",
         "CLAUDE_PLUGIN_OPTION_TRADE_GOV_API_KEY": "${user_config.trade_gov_api_key}",
         "CLAUDE_PLUGIN_OPTION_AUDIT_KEY": "${user_config.audit_key}",
-        "EXCHEK_PLATFORM_TIER": "${user_config.platform_tier}"
+        "EXCHEK_PLATFORM_TIER": "${user_config.platform_tier}",
+        "EXCHEK_REGULATORY_SOURCE": "${user_config.regulatory_source}"
       }
+    },
+    "exchek-api": {
+      "type": "http",
+      "url": "https://api.exchek.us/mcp"
     }
   },
   "userConfig": {
@@ -53,6 +58,12 @@
       "title": "AI platform tier",
       "description": "Your privacy/training tier. ExChek records this in every audit-ready report. Recommended: Cowork enterprise, Claude Enterprise, Claude Team, or a Workspace with training disabled.",
       "default": "cowork-enterprise"
+    },
+    "regulatory_source": {
+      "type": "string",
+      "title": "Regulatory data source",
+      "description": "Where skills pull live CFR text. 'ask' (default) = a one-time gate lets you choose per session; 'api' = ExChek API MCP (api.exchek.us, Cloudflare edge cache — fastest, no local Node/ecfr.gov dependency); 'local' = local MCP, direct from www.ecfr.gov and cached on your machine. Only CFR part numbers and search terms ever transit the API — never your item descriptions, party names, or compliance results. Screening, sanitization, audit logging, and report generation always stay local regardless of this setting.",
+      "default": "ask"
     },
     "trade_gov_api_key": {
       "type": "string",

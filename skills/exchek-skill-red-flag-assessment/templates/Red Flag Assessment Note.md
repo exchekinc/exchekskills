@@ -34,26 +34,50 @@
 
 ## Section 2 — Red flag checklist
 
-*Complete each row per BIS Know Your Customer (Supplement No. 3 to 15 C.F.R. Part 732). Present? = Yes / No / Conditional.*
+*Per BIS Know Your Customer (Supplement No. 3 to 15 C.F.R. Part 732), as amended (29 enumerated flags as of 2025-11-12 — confirm against the live text). Present? = Yes / No / Conditional. Parentheticals are the official Supp. 3 flag numbers. **Group A applies to every transaction; Groups B and C apply only when the item/customer has that dimension** — mark the group N/A otherwise.*
+
+**Group A — General diversion indicators (§§ 1–12)**
 
 | Red flag | Present? | Notes |
 |----------|----------|-------|
-| End-use inconsistent with product / counterparty unfamiliar with normal use | {{RED_FLAG_1_PRESENT}} | {{RED_FLAG_1_NOTES}} |
-| Unwilling to provide end-use or end-user identity | {{RED_FLAG_2_PRESENT}} | {{RED_FLAG_2_NOTES}} |
-| Unusual payment (cash, third-party, overpayment) | {{RED_FLAG_3_PRESENT}} | {{RED_FLAG_3_NOTES}} |
-| Destination differs from buyer country/billing without explanation | {{RED_FLAG_4_PRESENT}} | {{RED_FLAG_4_NOTES}} |
-| Delivery instructions inconsistent with normal practice | {{RED_FLAG_5_PRESENT}} | {{RED_FLAG_5_NOTES}} |
-| Requests removal of technical documentation | {{RED_FLAG_6_PRESENT}} | {{RED_FLAG_6_NOTES}} |
-| No established business history or web presence | {{RED_FLAG_7_PRESENT}} | {{RED_FLAG_7_NOTES}} |
-| Country subject to comprehensive embargo or heightened controls | {{RED_FLAG_8_PRESENT}} | {{RED_FLAG_8_NOTES}} |
-| Item controlled for AT, NP, CB, or MT reasons | {{RED_FLAG_9_PRESENT}} | {{RED_FLAG_9_NOTES}} |
-| Refused to provide ownership or identification (KYC) | {{RED_FLAG_10_PRESENT}} | {{RED_FLAG_10_NOTES}} |
-| Known or suspected ownership by Entity List / MEU / SDN (BIS Red Flag 29) | {{RED_FLAG_11_PRESENT}} | {{RED_FLAG_11_NOTES}} |
-| Other (specify) | {{RED_FLAG_12_PRESENT}} | {{RED_FLAG_12_NOTES}} |
+| Reluctant to offer end-use information (§1) | {{RF_A1_PRESENT}} | {{RF_A1_NOTES}} |
+| Product capabilities don't fit the buyer's line of business (§2) | {{RF_A2_PRESENT}} | {{RF_A2_NOTES}} |
+| Product incompatible with the destination's technical level (§3) | {{RF_A3_PRESENT}} | {{RF_A3_NOTES}} |
+| Little or no business background (§4) | {{RF_A4_PRESENT}} | {{RF_A4_NOTES}} |
+| Cash for an expensive item when terms call for financing (§5) | {{RF_A5_PRESENT}} | {{RF_A5_NOTES}} |
+| Unfamiliar with performance characteristics but still wants it (§6) | {{RF_A6_PRESENT}} | {{RF_A6_NOTES}} |
+| Declines routine installation, training, or maintenance (§7) | {{RF_A7_PRESENT}} | {{RF_A7_NOTES}} |
+| Vague delivery dates or out-of-the-way destinations (§8) | {{RF_A8_PRESENT}} | {{RF_A8_NOTES}} |
+| A freight forwarder is listed as the final destination (§9) | {{RF_A9_PRESENT}} | {{RF_A9_NOTES}} |
+| Abnormal shipping route for the product/destination (§10) | {{RF_A10_PRESENT}} | {{RF_A10_NOTES}} |
+| Packaging inconsistent with shipment method/destination (§11) | {{RF_A11_PRESENT}} | {{RF_A11_NOTES}} |
+| Evasive about domestic use vs. export vs. reexport (§12) | {{RF_A12_PRESENT}} | {{RF_A12_NOTES}} |
+
+**Group B — Hardware / semiconductor / computing & destination diversion (§§ 13–23)** — Applicable? {{GROUP_B_APPLICABLE}} (Yes / No / N/A)
+
+| Red flag | Present? | Notes |
+|----------|----------|-------|
+| 9x515 / "600 series" parts ordered in quantities inconsistent with known end items; or D:5 reexport indicators (§§13–14) | {{RF_B_600SERIES_PRESENT}} | {{RF_B_600SERIES_NOTES}} |
+| Advanced-node IC / supercomputer indicators; technology mismatch; uncertain ultimate user for SME (§§15–21) | {{RF_B_ADVCOMPUTE_PRESENT}} | {{RF_B_ADVCOMPUTE_NOTES}} |
+| License-history uncertainty, incl. service/install/upgrade requests (§22) | {{RF_B_LICHISTORY_PRESENT}} | {{RF_B_LICHISTORY_NOTES}} |
+| Servicing an item altered after export for a more advanced controlled end use (§23) | {{RF_B_ALTERED_PRESENT}} | {{RF_B_ALTERED_NOTES}} |
+
+**Group C — Entity List / FDP / AI weights & ownership (§§ 24–29)** — Applicable? {{GROUP_C_APPLICABLE}} (Yes / No / N/A)
+
+| Red flag | Present? | Notes |
+|----------|----------|-------|
+| New customer's management overlaps an Entity List entity, or assumed operations of a listed entity (§§24–25) | {{RF_C_ELOVERLAP_PRESENT}} | {{RF_C_ELOVERLAP_NOTES}} |
+| Entity List / SME FDP product-scope (foreign-produced Cat 3B item with ≥1 IC) (§26) | {{RF_C_FDP_PRESENT}} | {{RF_C_FDP_NOTES}} |
+| End user is a facility physically connected to an advanced-node IC fab (§27) | {{RF_C_FACILITY_PRESENT}} | {{RF_C_FACILITY_NOTES}} |
+| IaaS/computing to train an AI model with ECCN 4E091 weights for a non-Supp.5(a) destination (§28) | {{RF_C_AIWEIGHTS_PRESENT}} | {{RF_C_AIWEIGHTS_NOTES}} |
+| Known ownership by an Entity List / MEU party — determine ownership %; apply the 50% Affiliates Rule (§29) | {{RF_C_OWNERSHIP_PRESENT}} | {{RF_C_OWNERSHIP_NOTES}} |
+| Other (specify) | {{RF_OTHER_PRESENT}} | {{RF_OTHER_NOTES}} |
 
 **Total red flags identified (Yes):** {{TOTAL_RED_FLAGS_YES}}
 
 **Conditional items (count):** {{TOTAL_CONDITIONAL}}
+
+**Source of red-flag list used:** {{RED_FLAG_SOURCE}} (e.g., "live ecfr_full_text pull, Supp. 3 as amended 2025-11-12" or "curated checklist fallback")
 
 ---
 

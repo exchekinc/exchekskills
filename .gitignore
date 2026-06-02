@@ -3,3 +3,6 @@ node_modules/
 ._*
 *.log
 .ExChek-*-temp.md
+
+# Plugin build artifacts are distributed as GitHub Release assets, not tracked
+*.zip

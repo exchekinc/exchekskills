@@ -83,7 +83,7 @@ For everything else — routine classifications, routine screenings, partner pac
 
 > "Is the AI making this up?"
 
-It's pulling live text from `ecfr.gov` (the regulations) and `data.trade.gov` (the screening list). The cite in the memo is real. The reasoning the AI does is on top of that. We sign off as the human in the loop.
+It's pulling live regulation text (from `ecfr.gov`, or ExChek's edge cache at `api.exchek.us` if that source is selected) and the screening list from `data.trade.gov`. The cite in the memo is real. The reasoning the AI does is on top of that. We sign off as the human in the loop.
 
 > "Why do we have to do this?"
 

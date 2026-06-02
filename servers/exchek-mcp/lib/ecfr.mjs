@@ -1,14 +1,18 @@
 // Local-first eCFR data fetcher.
 // Primary: ecfr.gov (authoritative). Fallback: api.exchek.us (public Cloudflare
 // edge cache of the same data, no auth, no PII). Cached locally under
-// ${CLAUDE_PLUGIN_DATA}/ecfr/ for 24h.
+// ${CLAUDE_PLUGIN_DATA}/ecfr/ for 24h. The fallback is automatic and the source
+// used (cache / ecfr.gov / api.exchek.us) is recorded on every response. Users
+// who prefer the hosted path can instead select the separate "exchek-api" MCP
+// server (https://api.exchek.us/mcp) via the data-source gate.
 //
 // The eCFR developer API exposes:
 //   GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json
 //   GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json
 //   GET https://www.ecfr.gov/api/versioner/v1/full/{date}/title-{n}.xml?part={part}
 //
-// The ExChek API mirror exposes the part subtree directly:
+// The ExChek API mirror exposes the part subtree directly, for all 11 supported
+// parts (121, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774):
 //   GET https://api.exchek.us/api/ecfr/{part}
 //
 // We cache structure JSON for 24 hours, then refresh.
@@ -16,14 +20,16 @@
 import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
-const TITLE_FOR_PART = {
+export const TITLE_FOR_PART = {
   "121": 22,
-  "734": 15, "738": 15, "740": 15, "742": 15, "744": 15, "746": 15,
+  "732": 15, "734": 15, "738": 15, "740": 15, "742": 15, "744": 15, "746": 15,
   "748": 15, "762": 15, "772": 15, "774": 15,
 };
 
-// Parts mirrored by api.exchek.us (per GET / endpoint listing).
-const EXCHEK_API_PARTS = new Set(["121", "734", "738", "740", "742", "744", "746", "774"]);
+// Parts mirrored by api.exchek.us (per GET /api/ecfr/meta — all 11 supported parts).
+export const EXCHEK_API_PARTS = new Set([
+  "121", "734", "738", "740", "742", "744", "746", "748", "762", "772", "774",
+]);
 const EXCHEK_API_BASE = "https://api.exchek.us";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -185,5 +191,95 @@ export function regulatoryCurrencyAge(fetchedAtIso) {
       ageDays > 30
         ? "Determination is older than 30 days. Re-run before relying on it."
         : "Within 30-day regulatory currency window.",
+  };
+}
+
+// Resolve the most recent amendment date eCFR has on file for a part.
+async function latestVersionDate(title, part) {
+  try {
+    const url = `https://www.ecfr.gov/api/versioner/v1/versions/title-${title}.json?part=${part}`;
+    const body = await fetchWithTimeout(url);
+    const data = JSON.parse(body);
+    const dates = (data.content_versions || [])
+      .map((v) => v.date)
+      .filter(Boolean)
+      .sort();
+    if (dates.length) return dates[dates.length - 1];
+  } catch {
+    /* fall through to today */
+  }
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+// Crude but dependable XML→text for eCFR full-text payloads.
+function stripXml(xml) {
+  let s = xml.replace(/<[^>]+>/g, " ");
+  const named = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#xA7;": "§", "&#167;": "§" };
+  for (const [k, v] of Object.entries(named)) s = s.split(k).join(v);
+  s = s.replace(/&#x([0-9A-Fa-f]+);/g, (_, h) => {
+    try { return String.fromCodePoint(parseInt(h, 16)); } catch { return " "; }
+  });
+  s = s.replace(/&#(\d+);/g, (_, d) => {
+    try { return String.fromCodePoint(parseInt(d, 10)); } catch { return " "; }
+  });
+  s = s.replace(/&[a-z]+;/gi, " ");
+  return s.replace(/[ \t]+/g, " ").replace(/\s*\n\s*\n+/g, "\n").trim();
+}
+
+const MAX_FULL_TEXT_CHARS = 60000;
+
+/**
+ * Fetch the full regulatory TEXT of a part from ecfr.gov (the structure tools
+ * only return the hierarchy). Used for content that lives in section/appendix
+ * prose — e.g. the red-flag list in Supplement No. 3 to Part 732. Cached 24h.
+ *
+ * @param {string} part   Part number (must be in TITLE_FOR_PART).
+ * @param {object} opts
+ * @param {string} [opts.contains]  If given, return the slice starting at the first
+ *                                  occurrence of this marker (e.g. "Supplement No. 3").
+ * @param {number} [opts.max]       Max characters to return (default 60000).
+ * Note: ecfr.gov only — api.exchek.us does not expose full text and does not mirror Part 732.
+ */
+export async function getFullText(part, { contains = null, max = MAX_FULL_TEXT_CHARS } = {}) {
+  const partKey = String(part);
+  const title = TITLE_FOR_PART[partKey];
+  if (!title) {
+    throw new Error(`Unsupported eCFR part: ${partKey}. Supported: ${Object.keys(TITLE_FOR_PART).join(", ")}`);
+  }
+  const filename = `title-${title}-part-${partKey}-full.xml`;
+
+  let xml = null;
+  let fetched_at = null;
+  const cached = await readCached(filename);
+  if (cached && cached.fresh) {
+    xml = cached.body;
+    fetched_at = cached.fetched_at;
+  } else {
+    const date = await latestVersionDate(title, partKey);
+    const url = `https://www.ecfr.gov/api/versioner/v1/full/${date}/title-${title}.xml?part=${partKey}`;
+    xml = await fetchWithTimeout(url, 30000);
+    await writeCached(filename, xml);
+    fetched_at = new Date().toISOString();
+  }
+
+  let text = stripXml(xml);
+  let sliced = false;
+  if (contains) {
+    const idx = text.indexOf(contains);
+    if (idx >= 0) {
+      text = text.slice(idx);
+      sliced = true;
+    }
+  }
+  const truncated = text.length > max;
+  return {
+    part: partKey,
+    title,
+    source: cached && cached.fresh ? "cache" : "ecfr.gov",
+    fetched_at,
+    contains: contains || null,
+    sliced,
+    truncated,
+    text: text.slice(0, max),
   };
 }

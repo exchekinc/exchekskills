@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-A well-constructed export classification memorandum is the single most critical document in an export compliance program. When regulators, auditors, or enforcement officers scrutinize an export decision, this memo is the record that demonstrates your organization applied a documented, methodical, and legally sound process — the difference between a resolved inquiry and a civil or criminal enforcement action. Civil penalties for misclassification reach up to **$300,000 per transaction or twice the transaction value** (whichever is greater), and criminal penalties can reach **$1 million per transaction plus up to 20 years imprisonment**. This guide synthesizes best practices from leading international trade law firms, BIS official guidance, and modern AI-assisted classification tools to help you build the most defensible classification memo possible.
+A well-constructed export classification memorandum is the single most critical document in an export compliance program. When regulators, auditors, or enforcement officers scrutinize an export decision, this memo is the record that demonstrates your organization applied a documented, methodical, and legally sound process — the difference between a resolved inquiry and a civil or criminal enforcement action. Civil penalties for misclassification reach up to the **IEEPA statutory maximum per violation** (inflation-adjusted annually — well above $300,000; confirm the current figure) **or twice the transaction value, whichever is greater**, and criminal penalties can reach **$1 million per violation plus up to 20 years imprisonment**. This guide synthesizes best practices from leading international trade law firms, BIS official guidance, and modern AI-assisted classification tools to help you build the most defensible classification memo possible.
 
 ***
 
@@ -79,7 +79,7 @@ AI classification tools do not constitute a legal determination. BIS has made cl
 3. Document the human review and override or confirmation decision
 4. Not rely solely on AI output as the basis for the classification conclusion
 
-The January 2025 AI Diffusion Interim Final Rule (effective May 2025) further elevated BIS's due diligence expectations for AI hardware and model classifications, creating new ECCN 4E091 for certain advanced AI model weights. Companies operating in the AI/ML space must now include a specific AI technology review section in classification memos.
+Advanced-computing and AI controls are among the most volatile areas of the EAR — verify the current rule before relying on any of the following. The January 2025 "AI Diffusion" Interim Final Rule (the worldwide-license framework with country tiers) was **rescinded by BIS on May 12–13, 2025 and never took effect**; BIS replaced it with policy guidance, enforcement "red flags," and a replacement rule that remains pending. The underlying advanced-computing controls persist and continue to change — e.g., ECCNs 3A090/4A090 and **4E091** (certain advanced AI model weights) remain in the CCL, and on **January 15, 2026** BIS amended § 742.6 to a **case-by-case** license-review policy for certain advanced-computing commodities to China and Macau (replacing presumption of denial). Companies operating in the AI/ML or semiconductor space should include a specific AI/advanced-computing technology review in classification memos and confirm the current CCL entry, § 742.6 policy, and BIS guidance at the time of analysis.
 
 ***
 
@@ -513,9 +513,9 @@ Companies relying on License Exception ENC (b)(1) must submit an annual self-cla
 
 | Violation Type | Civil Penalty | Criminal Penalty |
 |---|---|---|
-| EAR violation (standard) | Up to $300,000/transaction or 2x transaction value (whichever greater) | Up to $1M/transaction + 20 years |
+| EAR violation (standard) | Up to the IEEPA statutory maximum per violation (inflation-adjusted annually — well above $300K now; verify the current figure) or 2x transaction value, whichever is greater | Up to $1M/violation + 20 years |
 | Willful violation / knowing violation | Higher multipliers; loss of export privileges | Same criminal exposure + debarment |
-| ITAR violation | Up to $1M/violation (AECA § 38) | Up to $1M + 20 years |
+| ITAR violation | Up to the AECA § 38 statutory maximum per violation (inflation-adjusted annually — over $1M now; verify the current figure) | Up to $1M + 20 years |
 | Failure to disclose (VSD aggravation) | Increased base penalty per 2024 BIS rule | DOJ referral possible |
 | Voluntary Self-Disclosure (mitigation) | Reduced penalties recognized | DOJ notified of VSD but credit may be given |
 

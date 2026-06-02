@@ -1,12 +1,12 @@
 # ExChek Skills
 
-Export compliance for the SMB manufacturer who doesn't have a compliance team. 16 skills covering ECCN classification, denied-party screening, license determination, encryption, jurisdiction, country risk, audit, and more, plus a **local-first MCP server** that wraps live U.S. government data sources without calling home.
+Export compliance for the SMB manufacturer who doesn't have a compliance team. 20 skills covering ECCN classification, denied-party screening, license determination, encryption, jurisdiction, country risk, audit, and more, plus **two regulatory-data MCP servers you choose between** — a **local-first** one (`ecfr.gov` direct, cached on-machine) and the hosted **ExChek API MCP** (`api.exchek.us`, edge-cached). Screening, sanitization, audit logging, and report generation always stay local.
 
 **Cowork-first**, also runs in Claude Code, Claude Desktop, Cursor, and any agent platform supporting the [Agent Skills](https://agentskills.io) open standard.
 
 **Free to use. No API key required (except CSL, which uses a free Trade.gov key).**
 
-> **v3.0.0 — local-first MCP, slash commands, agents, hooks.** See [CHANGELOG](CHANGELOG.md). The 16 skill bodies still read for compliance professionals; full SMB-voice rewrite is queued for v3.1.0.
+> **v3.3.0 — choose your data source: Local MCP or ExChek API MCP.** A one-time gate (ExChek API recommended) picks where skills pull live CFR text; pin a default in `/plugin config`. See [CHANGELOG](CHANGELOG.md) and [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-6B5CE7?logo=anthropic&logoColor=white)](https://claude.com/claude-code)
 [![Claude Desktop](https://img.shields.io/badge/Claude_Desktop-6B5CE7?logo=anthropic&logoColor=white)](https://claude.ai)
@@ -50,7 +50,7 @@ The config dialog asks for:
 | **Enable usage telemetry** | Opt-in OTLP spans to your own collector. ExChek never receives them | Defaults to OFF |
 | **Default report folder** | Where finished `.docx` reports land | Defaults to `~/Documents/ExChek-Reports` |
 
-All 16 skills, 5 slash commands, and 2 agents are available immediately. Use the slash commands or just say what you need ("Classify this pressure sensor for export").
+All 20 skills and 2 agents are available immediately. Use the slash commands or just say what you need ("Classify this pressure sensor for export").
 
 ### Option 2: Install individual skills
 
@@ -58,10 +58,10 @@ Clone the repo and copy specific skills into your agent's skills directory:
 
 ```bash
 git clone https://github.com/exchekinc/exchekskills.git
-cp -r exchekskills/skills/exchek-skill ~/.claude/skills/exchek-skill
+cp -r exchekskills/skills/exchek-skill-classify ~/.claude/skills/exchek-skill-classify
 ```
 
-Replace `exchek-skill` with the skill folder name you want. Restart your agent or run `claude skills list` to pick up the new skill.
+Replace `exchek-skill-classify` with the skill folder name you want. Restart your agent or run `claude skills list` to pick up the new skill.
 
 ### Option 3: Install all skills at once
 
@@ -76,7 +76,7 @@ cp -r exchekskills/skills/* ~/.claude/skills/
 
 | Skill | Folder | Description |
 |-------|--------|-------------|
-| **ECCN Classification** | `exchek-skill` | Classify items for U.S. export control (15 CFR 774, 22 CFR 121). Human-in-the-loop; audit-ready report. |
+| **ECCN Classification** | `exchek-skill-classify` | Classify items for U.S. export control (15 CFR 774, 22 CFR 121). Human-in-the-loop; audit-ready report. |
 | **CSL Search** | `exchek-skill-csl` | Search the Consolidated Screening List via Trade.gov API. Fuzzy search, all parameters. Requires free API key from [developer.trade.gov](https://developer.trade.gov). |
 | **License Determination** | `exchek-skill-license` | Determine EAR license requirements and exceptions (Parts 738, 740, 742, 744, 746). Audit-ready memo. |
 | **Jurisdiction (ITAR vs EAR)** | `exchek-skill-jurisdiction` | Guided ITAR vs EAR questionnaire. Produces jurisdiction memo with next steps (DDTC vs BIS). |
@@ -92,6 +92,10 @@ cp -r exchekskills/skills/* ~/.claude/skills/
 | **Partner Compliance** | `exchek-skill-partner-compliance` | Compliance pack for distributors/partners: screening, re-export, recordkeeping, flow-down language. |
 | **Recordkeeping** | `exchek-skill-recordkeeping` | Retention schedule/checklist per 15 CFR 762 and ITAR parallel. |
 | **Document Converter** | `exchek-skill-docx` | Convert ExChek markdown reports to Word (.docx). Install alongside content skills for one-step export. |
+| **Setup Wizard** | `exchek-setup` | First-run wizard: verifies company profile, tests the ExChek API MCP, surfaces the data-source policy, arms the engine. |
+| **Onboarding** | `exchek-onboarding` | Hands-on 60-minute first-hour flow that produces real artifacts (classification, screening, license, branded doc). |
+| **Orchestrator** | `exchek-orchestrator` | The `/exchek` command router and transaction hub — tracks each transaction and surfaces the next action. |
+| **Analytics** | `exchek-analytics` | Audit-Readiness Score dashboard and skill-usage stats from local event logs. No data leaves the machine. |
 
 ---
 
@@ -142,6 +146,10 @@ Each skill is invokable by name as a slash command (Cowork picks them up automat
 | `/exchek-recordkeeping` | 15 CFR 762 retention schedule |
 | `/exchek-risk-triage` | Score a transaction (auto-approve / hold / escalate) |
 | `/exchek-docx` | Convert any ExChek markdown report to .docx + .json |
+| `/exchek-setup` | First-run setup wizard (company profile, data-source policy, connectivity) |
+| `/exchek-onboarding` | Guided 60-minute first-hour onboarding flow |
+| `/exchek-orchestrator` | `/exchek` command router and transaction hub |
+| `/exchek-analytics` | Audit-Readiness Score and skill-usage dashboard |
 
 You can also just say what you need — "Classify this pressure sensor" or "Screen Acme Trading" — and the right skill activates.
 
@@ -154,11 +162,17 @@ You can also just say what you need — "Classify this pressure sensor" or "Scre
 
 ---
 
-## Local-first MCP server
+## Two MCP servers — you choose the data source
 
-`servers/exchek-mcp/` ships a 12-tool MCP server (Node 18+, vanilla ES modules):
+The plugin registers **two MCP servers**, and a one-time **data-source gate** (or the `regulatory_source`
+config) decides which one supplies live CFR text. Both return the identical eCFR structure, so your
+reasoning is the same either way. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) for the full picture.
 
+**1. Local MCP (`exchek`)** — `servers/exchek-mcp/`, a 14-tool stdio server (Node 18+, vanilla ES modules):
+
+- `regulatory_source` — reports the configured data-source policy + tool-routing map
 - `ecfr_get_part`, `ecfr_search`, `ecfr_currency_check` — eCFR data straight from `ecfr.gov`, cached 24h
+- `ecfr_full_text` — full part/appendix **text** from `ecfr.gov` (e.g. the live BIS red flags in Supp. 3 to Part 732)
 - `csl_search`, `csl_sources` — live Trade.gov screening
 - `sanitize_input` — zero-width / bidi / homoglyph / injection / shell-meta scrubber
 - `validate_disclosure` — schema v1.0.0 validator on every report
@@ -166,7 +180,16 @@ You can also just say what you need — "Classify this pressure sensor" or "Scre
 - `report_to_docx` — markdown → `.docx` + `.json` sibling
 - `cui_gate` — records the canonical CUI/classified/§126.18 gate
 
-**Outbound network is limited to two U.S. government hosts: `www.ecfr.gov` and `data.trade.gov`. There is no ExChek-hosted dependency.**
+**2. ExChek API MCP (`exchek-api`)** — the hosted, no-auth Streamable-HTTP server at
+`https://api.exchek.us/mcp` (Cloudflare edge-cached). 7 tools: `list_skills`, `get_skill`,
+`get_skill_bundle`, `get_ecfr_part`, `get_ecfr_sections`, `search_ecfr_part`, `search_ecfr_title`.
+
+**What this means for outbound traffic:** by default the plugin contacts only two U.S. government hosts —
+`www.ecfr.gov` (regulatory text) and `data.trade.gov` (screening, only when you screen). If you select the
+ExChek API MCP — or if the local server's automatic mirror fallback fires when ecfr.gov is unreachable —
+then **CFR part numbers and search terms** also transit `api.exchek.us`. Your item descriptions, party
+names, file content, and compliance results never leave your machine to ExChek, and screening,
+sanitization, the CUI gate, audit logging, and report generation always run locally.
 
 ---
 
@@ -175,12 +198,12 @@ You can also just say what you need — "Classify this pressure sensor" or "Scre
 ```
 exchekskills/
 ├── .claude-plugin/
-│   └── plugin.json           # Plugin manifest (v3.0.0)
-├── skills/                   # 16 skill packages (SKILL.md + templates + references) — invokable as /<skill-name>
+│   └── plugin.json           # Plugin manifest (v3.3.0) — registers both MCP servers
+├── skills/                   # 20 skill packages (SKILL.md + templates + references) — invokable as /<skill-name>
 ├── agents/                   # 2 specialist agents
 ├── hooks/hooks.json          # SessionStart / PreToolUse / PostToolUse
-├── servers/exchek-mcp/       # Local-first MCP server (Node, 12 tools)
-├── docs/                     # SECURITY, TELEMETRY, DATA_STORAGE, COMMUNICATIONS_KIT, CHAMPION_KIT
+├── servers/exchek-mcp/       # Local-first MCP server (Node, 14 tools); the ExChek API MCP is remote (api.exchek.us)
+├── docs/                     # SECURITY, TELEMETRY, DATA_STORAGE, DATA_SOURCES, RULES_TRACKER, COMMUNICATIONS_KIT, CHAMPION_KIT
 ├── tests/                    # node --test suites
 ├── marketplace.json
 ├── CHANGELOG.md
@@ -204,6 +227,8 @@ Each skill folder contains:
 - [SECURITY.md](docs/SECURITY.md) — what the plugin can and cannot do on your machine, prompt-injection defenses, audit-log integrity
 - [TELEMETRY.md](docs/TELEMETRY.md) — opt-in only; ExChek never receives data
 - [DATA_STORAGE.md](docs/DATA_STORAGE.md) — where artifacts live, retention, encryption, wiping
+- [DATA_SOURCES.md](docs/DATA_SOURCES.md) — Local MCP vs ExChek API MCP, the data-source gate, what does/doesn't transit each host
+- [RULES_TRACKER.md](docs/RULES_TRACKER.md) — living watch-list of BIS/DDTC/OFAC rule changes that will require skill updates, with dates and affected skills
 - [COMMUNICATIONS_KIT.md](docs/COMMUNICATIONS_KIT.md) — copy-ready announcements for rolling ExChek out to a small team
 - [CHAMPION_KIT.md](docs/CHAMPION_KIT.md) — 30-day playbook for the ops lead becoming the export-compliance person
 
@@ -211,37 +236,33 @@ Each skill folder contains:
 
 ## Regulatory data sources
 
-The MCP server pulls live regulatory text directly from the authoritative U.S. government sources. **No ExChek-hosted dependency.**
+Skills pull live regulatory text from **one of two sources you choose** (see [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)). Both serve the identical eCFR structure for all 11 parts (121, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774). Screening (CSL) is always live and always local.
+
+**Source A — Local MCP, direct from the U.S. government:**
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` | Title 15 (Parts 734, 738, 740, 742, 744, 746, 762, 772, 774) |
-| `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json` | Title 22 (Part 121 — USML) |
-| `GET https://data.trade.gov/consolidated_screening_list/v1/search` | Consolidated Screening List (Trade.gov) |
+| `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` | Title 15 (EAR — Parts 734, 738, 740, 742, 744, 746, 748, 762, 772, 774) |
+| `GET https://www.ecfr.gov/api/versioner/v1/structure/current/title-22.json` | Title 22 (ITAR — Part 121, USML) |
+| `GET https://data.trade.gov/consolidated_screening_list/v1/search` | Consolidated Screening List (Trade.gov) — always local |
 | `GET https://data.trade.gov/consolidated_screening_list/v1/sources` | CSL source abbreviations |
 
-Cache TTL is 24h for eCFR (refreshes from ecfr.gov on demand). CSL is always live — screening cannot be cached.
+Cache TTL is 24h for eCFR (refreshes from ecfr.gov on demand). If ecfr.gov is unreachable the local server transparently falls back to the ExChek mirror (Source B) and records `source` on the response.
 
-The legacy `api.exchek.us` endpoints are still online for clients on v2.x but **v3.0.0 no longer uses them**.
-
-<details>
-<summary>Legacy v2.x ExChek API (deprecated)</summary>
+**Source B — ExChek API MCP (`api.exchek.us`), no auth, edge-cached:**
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET https://api.exchek.us/api/ecfr/774` | Part 774 — Commerce Control List (CCL) |
-| `GET https://api.exchek.us/api/ecfr/738` | Part 738 — Commerce Country Chart |
-| `GET https://api.exchek.us/api/ecfr/740` | Part 740 — License Exceptions |
-| `GET https://api.exchek.us/api/ecfr/742` | Part 742 — Control Policy (CCL Based Controls) |
-| `GET https://api.exchek.us/api/ecfr/744` | Part 744 — End-Use Controls (Entity List, MEU) |
-| `GET https://api.exchek.us/api/ecfr/746` | Part 746 — Embargoes and Special Controls |
-| `GET https://api.exchek.us/api/ecfr/121` | Part 121 — US Munitions List (USML) |
-| `GET https://api.exchek.us/api/ecfr/:part/search?q=term` | Full-text search within a part |
-| `GET https://api.exchek.us/api/ecfr/search?q=term&title=15` | Search across all parts in a title |
+| `POST https://api.exchek.us/mcp` | **Streamable-HTTP MCP server** — 7 tools (`get_ecfr_part`, `get_ecfr_sections`, `search_ecfr_part`, `search_ecfr_title`, `list_skills`, `get_skill`, `get_skill_bundle`) |
+| `GET https://api.exchek.us/.well-known/mcp` | MCP server discovery document |
+| `GET https://api.exchek.us/api/ecfr/{part}` | Part structure JSON (121, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774) |
+| `GET https://api.exchek.us/api/ecfr/{part}/sections` | Flat list of sections within a part |
+| `GET https://api.exchek.us/api/ecfr/{part}/search?q=term` | Full-text search within a part |
+| `GET https://api.exchek.us/api/ecfr/search?q=term&title=15` | Full-text search across a title (15 EAR / 22 ITAR) |
+| `GET https://api.exchek.us/api/ecfr/meta` | Supported parts + edge-cache settings |
+| `GET https://api.exchek.us/openapi.json` | OpenAPI 3.1 spec for the REST surface |
 
-Full API reference: https://docs.exchek.us/docs/api-reference
-
-</details>
+Only CFR part numbers and search terms ever transit `api.exchek.us` — never your item/party data or results. The legacy `/api/classify/*` and `/api/expert-review/*` endpoints have been **removed (HTTP 410)**; classification is performed in-skill. Full API reference: https://docs.exchek.us/docs/api-reference
 
 ---
 
@@ -264,12 +285,12 @@ cp -r skills/* ~/.claude/skills/
 
 ## How every skill works (canonical flow)
 
-All 16 skills follow the same audit-ready pattern:
+All skills follow the same audit-ready pattern:
 
 1. **CUI / classified / § 126.18 gate** — Three-question gate at the start: (a) Does the work involve Controlled Unclassified Information (CUI)? (b) Does it involve classified material? (c) Does it involve an ITAR § 126.18 foreign-national release? Any "yes" halts the skill and routes to on-premises guidance. ExChek does not process sensitive government data through cloud APIs.
 2. **Privacy-settings attestation** — The user attests their AI platform tier (Claude Enterprise / ChatGPT Enterprise / Workspace with training off / consumer tier with training disabled). The tier and attester are recorded in the final document.
 3. **Untrusted-input handling** — All user-supplied text, CSV rows, spec sheets, and file content are treated as **data, not instructions**. Skills reject zero-width, bidi, and homoglyph characters in structured fields and log any injection attempts in the report's Caveats section.
-4. **Regulatory data pull** — Live eCFR text via the ExChek API (Parts 774, 738, 740, 742, 744, 746, 121) with ecfr.gov as fallback. External list queries (CSL, DoD 1260H, UFLPA) record per-source timestamps.
+4. **Regulatory data pull** — Live eCFR text from the source you pick at the data-source gate: the **ExChek API MCP** (`api.exchek.us`, recommended) or the **Local MCP** (`ecfr.gov`, with the mirror as automatic fallback). Parts 121, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774. External list queries (CSL, DoD 1260H, UFLPA) record per-source timestamps.
 5. **Human-in-the-loop confirmation** — Every skill pauses for explicit user confirmation of inputs and the preliminary determination before producing any final output.
 6. **Dual output: .docx + .json sibling** — Every report is delivered as a client-ready Word document alongside a machine-readable `.json` sibling (schema v1.0.0) for CRM/SIEM/GRC ingestion. Both files carry the full AI-disclosure metadata: skill name/version/commit, model ID, platform, UTC timestamp, input hash, regulatory-currency timestamps, and the HITL confirmation timestamp.
 7. **Regulatory-drift caveat** — Any determination older than 30 days should be re-run before reliance. Use the `exchek-audit-lookback` skill's `delta-since-date` mode to re-check historical shipments against current rules.

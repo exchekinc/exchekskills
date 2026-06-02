@@ -10,6 +10,7 @@ Under 15 CFR 758.6, the following (or equivalent) must appear on export document
 
 - **Placement:** Commercial invoice, packing list, bill of lading/airway bill, and (when filed) AES/EEI. The skill provides the full text for the invoice block and an abbreviated reference for the packing list.
 - **When not required:** EAR99 to non-embargo destinations with NLR may not require DCS in some interpretations; many companies still include it for consistency. If the license determination memo states “NLR” and no control, document that; the user may still choose to add a short disclaimer.
+- **ITAR items (different regime).** For USML/ITAR articles the DCS comes from **22 CFR § 123.9**, not § 758.6, and the export authorization cited on the documents and in the EEI is a DDTC license (e.g. DSP-5) or an ITAR **exemption** — e.g. **§ 126.7** (AUKUS — Australia/UK/US, final rule effective 2025-12-30) or **§ 126.5** (Canada). The 2025-12-30 AUKUS final rule also removed the nontransfer/use-certificate requirement for SME and classified articles under §§ 126.5 and 126.7. Confirm current ITAR documentation requirements with DDTC; this skill's EAR document blocks do not substitute for ITAR paperwork.
 
 ## Commercial invoice export block
 

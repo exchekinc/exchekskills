@@ -467,9 +467,9 @@ The $140M enforcement action confirmed what compliance practitioners have argued
 
 | Violation | Civil Penalty | Key Consideration |
 |---|---|---|
-| OFAC SDN transaction (per violation) | Up to $1.3M or 2x transaction value | Strict liability — intent is not a defense for civil violations |
-| BIS Entity List violation | Up to $300K or 2x value | Good-faith screening record is strong mitigating factor |
-| Failure to disclose OFAC blocking | $250K–$1M+ | Required within 10 days; separate violation from underlying one |
+| OFAC SDN transaction (per violation) | Greater of the IEEPA statutory maximum (inflation-adjusted annually — verify current) or 2x transaction value | Strict liability — intent is not a defense for civil violations |
+| BIS Entity List violation | Greater of the IEEPA statutory maximum (inflation-adjusted annually — verify current) or 2x value | Good-faith screening record is strong mitigating factor |
+| Failure to disclose OFAC blocking | Separate civil exposure (verify current OFAC figures) | Required reporting; separate violation from the underlying one |
 | Criminal (willful) | Up to $1M + 20 years imprisonment | Requires knowledge element |
 | VSD (mitigating factor) | Reduced base penalty | BIS and OFAC both formally recognize VSD as mitigation |
 

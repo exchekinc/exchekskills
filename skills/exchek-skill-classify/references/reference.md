@@ -5,6 +5,8 @@ The skill's Order of Review mirrors **Supplement No. 4 to Part 774** (Commerce C
 - **Base URL**: `https://api.exchek.us`
 - **Payment**: None. The ExChek classification skill is free; regulatory snapshot endpoints are read-only and require no auth or payment.
 
+> **How to call these (v3.3.0+):** don't hand-roll these HTTP requests. Use the **data-source gate** (`mcp__exchek__regulatory_source`) and then the MCP tools — the ExChek API MCP (`mcp__exchek-api__get_ecfr_part`, `search_ecfr_part`, `search_ecfr_title`, `get_ecfr_sections`) or the local MCP (`mcp__exchek__ecfr_get_part`, `ecfr_search`). The table below documents the underlying REST surface those tools wrap, and the full HTTP API at `api.exchek.us` (also reachable as the `exchek-api` MCP at `https://api.exchek.us/mcp`). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
+
 ## Endpoints
 
 | Endpoint | Method | Returns |
@@ -22,7 +24,7 @@ The skill's Order of Review mirrors **Supplement No. 4 to Part 774** (Commerce C
 | /api/ecfr/:part/search?q=term | GET | Full-text search within a part. Returns matching sections with excerpts, highlights, scores, and pagination. |
 | /api/ecfr/search?q=term&title=15 | GET | Full-text search across all parts in a title (15 = EAR, 22 = ITAR). |
 
-On 503, the API may return `{ error: "Regulatory data temporarily unavailable", message: "..." }`. Fall back to the eCFR developer API (below) or ask the user to try again later.
+On 503, the API may return `{ error: "Regulatory data temporarily unavailable", message: "..." }`. The local MCP (`mcp__exchek__ecfr_get_part`) falls back to ecfr.gov / the mirror automatically; otherwise fall back to the eCFR developer API (below) or ask the user to try again later. The `/api/ecfr/meta` endpoint lists all 11 supported parts (121, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774).
 
 ## eCFR developer API (fallback)
 

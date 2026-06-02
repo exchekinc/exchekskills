@@ -119,7 +119,7 @@ thread.
 | Question | Reply |
 |---|---|
 | "Is this just AI guessing?" | "No. The plugin pulls live regulation text from ecfr.gov and the screening list from trade.gov. The AI does the homework, but the cite is real. You sign off as the human in the loop." |
-| "What happens to our customer data?" | "It stays on your laptop. The plugin only calls ecfr.gov and trade.gov. There is no ExChek server in the loop. See [DATA_STORAGE.md]." |
+| "What happens to our customer data?" | "It stays on your laptop. Regulatory lookups fetch public CFR text (from ecfr.gov, or ExChek's edge cache if you pick the ExChek API source) and screening goes to trade.gov — those requests carry only part numbers, search terms, or the party name you screen, never your item or customer data. Want zero ExChek contact? Choose the Local source. See [DATA_SOURCES.md] and [DATA_STORAGE.md]." |
 | "Do we need a lawyer?" | "Not for routine classifications and screenings. For ITAR, embargoed destinations, deemed-export questions, or anything that hits a red flag — yes." |
 | "How much will this cost us?" | "The plugin is free. Trade.gov screening API key is free. The only cost is the AI tier you're already paying for (Cowork or Claude Code)." |
 | "What if the AI is wrong?" | "Every report has a Reviewer Certification line. That's where you sign off. The audit log records that you, not the AI, made the final call." |

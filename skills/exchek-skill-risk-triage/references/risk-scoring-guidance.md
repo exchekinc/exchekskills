@@ -92,4 +92,4 @@ This reference defines how to assign **Low**, **Medium**, or **High** risk and m
 
 - BIS "Know Your Customer" Guidance: Supplement No. 3 to 15 C.F.R. Part 732
 - Denied party screening and red-flag assessment: see exchek-skill-csl references/denied-party-screening-best-practices.md (Part III Hit Resolution, Section 5 Red Flag Assessment)
-- BIS Red Flag 29 (ownership by Entity List/MEU/SDN): affirmative duty to determine ownership percentage
+- BIS Red Flag 29 (ownership by Entity List/MEU/SDN): affirmative duty to determine ownership percentage. See the BIS **Affiliates Rule** (50% ownership, individually or in the aggregate; interim final rule Sept 30, 2025; **suspended Nov 10, 2025 – Nov 9, 2026** but the ownership-tracing duty continues) in exchek-skill-csl screening best-practices.

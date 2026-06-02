@@ -2,6 +2,75 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.4.0] — 2026-06-02
+
+**Regulatory-currency pass: red flags, the BIS 50% Affiliates Rule, and the ITAR AUKUS exemption.** BIS and DDTC amended several rules the skills depend on. Most importantly, **Supplement No. 3 to 15 CFR Part 732 (the "Know Your Customer" red flags) now has 29 enumerated flags** (last amended 2025-11-12) — the skill shipped a generic 12-item list. This release refreshes the affected content and adds a way to keep the red flags from going stale again.
+
+### Added
+
+- **`ecfr_full_text` tool on the local MCP** (`servers/exchek-mcp/lib/ecfr.mjs` + `index.mjs`) — fetches the full regulatory **text** of a part/appendix from `ecfr.gov` (the structure tools only return hierarchy), with latest-amendment-date resolution and a 24h cache. Part **732** added to the supported set so the red-flag skill can pull the **live Supplement No. 3** at runtime (`part: "732"`, `contains: "Supplement No. 3"`). ecfr.gov-only — api.exchek.us does not serve full text or mirror Part 732. Local server is now **14 tools**.
+- **50% Affiliates Rule guidance** added to `exchek-skill-partner-compliance` (ownership-tracing flow-down) and cross-referenced in `exchek-skill-risk-triage`. (The `exchek-skill-csl` screening best-practices already covered it.)
+- **ITAR AUKUS § 126.7 + USML-currency notes** added to `exchek-skill-jurisdiction`; an ITAR-§126.18 parallel note to `exchek-skill-deemed-export`; and an ITAR DCS/authorization (§ 123.9, § 126.7/§ 126.5) note to `exchek-skill-export-docs`.
+- **`docs/RULES_TRACKER.md`** — a living watch-list of BIS/DDTC/OFAC rule changes that will require skill updates: dated triggers (e.g. the 2026-11-09 Affiliates Rule resumption), pending rules (AI-diffusion replacement; USML Cat IV/XV/XI/IX), recurring/auto-current items (live-pulled red flags, § 742.6), and a "recently completed" log. Linked from the README.
+
+### Changed
+
+- **`exchek-skill-red-flag-assessment` rewritten to the current 29-flag Supplement No. 3** — `references/end-use-red-flag-guidance.md` regrouped into Group A (general diversion, §§1–12), Group B (semiconductor/computing/600-series/D:5, §§13–23), and Group C (Entity List/FDP/AI-weights/ownership, §§24–29), each flag traceable to its official Supp. 3 number, plain-English for the SMB audience. Added a §29 "ownership" companion section on the 50% Affiliates Rule (incl. the 2025-11-10 → 2026-11-09 suspension). `SKILL.md` flow now pulls the live list via `ecfr_full_text` and notes Groups B/C apply conditionally. `templates/Red Flag Assessment Note.md` restructured to the three groups.
+- **`exchek-skill-classify` — AI Diffusion Rule correction.** `classification-memo-best-practices.md` no longer states the Jan-2025 "AI Diffusion" IFR is "effective May 2025." It now reflects that the framework was **rescinded May 12–13, 2025** (never took effect), replaced by BIS guidance/enforcement red flags with a replacement rule pending; that advanced-computing ECCNs (incl. live **4E091**) remain and change often; and the **2026-01-15 § 742.6 case-by-case** shift for China/Macau.
+- **Advanced-computing licensing currency** added to `exchek-skill-license` (system prompt Scope) and `exchek-skill-country-risk` (Country Groups): the § 742.6 case-by-case policy, the D:5/Macau ultimate-parent rule, and a "verify the current rule" caveat for this fast-moving area.
+- **Civil-penalty figures softened** in `exchek-skill-classify` and `exchek-skill-csl`: hard-coded EAR "$300,000" and ITAR/OFAC "$1M/$1.3M" maximums replaced with "IEEPA/AECA statutory maximum, inflation-adjusted annually — verify current" (the caps are now higher than the figures previously shown).
+- **Folder rename for consistency:** `skills/exchek-skill/` → `skills/exchek-skill-classify/`, aligning the classify skill with the rest of the `exchek-skill-*` family (folder `exchek-skill-classify` → invocation name `exchek-classify`, like `exchek-skill-csl` → `exchek-csl`). The skill's `name:` and the `api.exchek.us` skill key (`exchek-classify`) are unchanged, so plugin users and the API are unaffected. References updated across README, docs, and cross-skill mentions.
+
+### Regulatory notes (as of 2026-06-02)
+
+- **BIS Affiliates Rule** (≥50% ownership by Entity List/MEU parties extends controls to affiliates): interim final rule **2025-09-30** (FR doc 2025-19001); **suspended 2025-11-10 → 2026-11-09** (FR doc 2025-19846). The §29 ownership-tracing duty continues during the suspension.
+- **ITAR AUKUS § 126.7** exemption (Australia/UK/US): final rule effective **2025-12-30**; § 126.18's dual/third-country-national release scope is unchanged, so the CUI/§126.18 gate boilerplate in all skills remains accurate.
+- **USML revisions**: a temporary Category VIII modification was terminated in early 2025; DDTC's 2026 agenda includes Categories IV/XV (space), XI (semiconductor/PCB), and IX ("defense services"). Skills now tell users to verify the current USML.
+
+## [3.3.0] — 2026-06-02
+
+**You now choose your regulatory-data source: the local MCP or the hosted ExChek API MCP.** v3.2.0 wired
+`api.exchek.us` only as a *silent* fallback inside the local server. But `api.exchek.us` is a full
+no-auth Cloudflare Workers API (v2.0.0) that **hosts its own MCP server** at
+`https://api.exchek.us/mcp` (Streamable HTTP, JSON-RPC 2.0). This release surfaces that as a first-class,
+user-selectable source behind a one-time **data-source gate**, and makes the docs accurate about what
+that means for outbound traffic.
+
+### Added
+
+- **Second MCP server `exchek-api`** in `.claude-plugin/plugin.json` — `{"type":"http","url":"https://api.exchek.us/mcp"}`.
+  Exposes 7 tools: `list_skills`, `get_skill`, `get_skill_bundle`, `get_ecfr_part`, `get_ecfr_sections`,
+  `search_ecfr_part`, `search_ecfr_title` (namespaced `mcp__exchek-api__*`). Coexists with the local stdio `exchek`.
+- **Data-source gate** in all 20 SKILL.md `⚡ Tools` blocks. Before pulling any CFR text a skill calls the new
+  local tool **`regulatory_source`** and either uses the pinned source or asks the user once
+  (**ExChek API MCP recommended**; Local MCP the alternative).
+- **`regulatory_source` userConfig** option (`ask` | `local` | `api`, default `ask`) so enterprises can pin a
+  default and skip the prompt.
+- **`regulatory_source` MCP tool** on the local server — returns `{mode, recommended, routes, options, always_local}`
+  computed from `EXCHEK_REGULATORY_SOURCE`, giving the skill an exact tool-routing map.
+- **`docs/DATA_SOURCES.md`** — the canonical explainer: the two MCPs, what does/doesn't transit each host, the
+  gate, the config knob, the tool-routing table, and the REST/MCP endpoint reference.
+
+### Changed
+
+- **`servers/exchek-mcp/lib/ecfr.mjs`**: the local server's automatic mirror fallback now covers **all 11
+  supported parts** (added 748, 762, 772 to `EXCHEK_API_PARTS`), matching `GET /api/ecfr/meta`. ecfr.gov stays
+  primary; the mirror is a *disclosed* backup — every response records `source` (`cache` / `ecfr.gov` / `api.exchek.us`).
+- **Legacy `GET https://api.exchek.us/api/ecfr/{part}` curl copy** in the data-heavy skills (classify, license,
+  country-risk, encryption, jurisdiction) reframed to the gate + MCP tools; the `exchek-setup` connectivity step
+  now tests the ExChek API MCP and surfaces the configured source.
+- **Doc accuracy fixes** in `SECURITY.md`, `DATA_STORAGE.md`, `TELEMETRY.md`, `COMMUNICATIONS_KIT.md`,
+  `CHAMPION_KIT.md`, and `README.md`: the "only ecfr.gov + trade.gov / no ExChek server in the loop" claims now
+  read accurately — by default the plugin contacts only the two government hosts; if you opt into the ExChek API
+  MCP (or the local auto-fallback fires), CFR part numbers + search terms also transit `api.exchek.us`, but never
+  your item descriptions, party names, file content, or compliance results. Telemetry remains zero.
+
+### Notes
+
+- The removed `/api/classify/*` and `/api/expert-review/*` endpoints (HTTP 410) are **not** used by any skill;
+  classification is performed in-skill from the CCL (774) and USML (121) data.
+- Part 732 (red-flag Supp. 3) is not mirrored by either source and continues to rely on ecfr.gov (unchanged).
+
 ## [3.2.0] — 2026-05-15
 
 **4 new engine skills + `api.exchek.us` as a public eCFR fallback.** v3.1.0 made the local MCP load-bearing but left a single point of failure: if `ecfr.gov` was rate-limiting or unreachable, every classification stalled. This release ports the engine-shell skills from the paid-tier plugin (analytics, onboarding, orchestrator, setup) into the public plugin and adds a backup path through our public Cloudflare cache.

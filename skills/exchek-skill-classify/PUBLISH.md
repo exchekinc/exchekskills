@@ -9,7 +9,7 @@ exchekskills/
   LICENSE                  # Proprietary license — copy from exchekinc root
   README.md                # Root README (all skills, install for each) — from exchekskills-README.md
   src/badges/              # Badge SVGs for READMEs/docs — from exchekinc src/badges/
-  exchek-classify/         # Classification — from exchek-skill/
+  exchek-classify/         # Classification — from exchek-skill-classify/
   exchek-csl/              # CSL search — from exchek-skill-csl/
   exchek-license/          # License determination — from exchek-skill-license/
   exchek-export-docs/      # Export documentation — from exchek-skill-export-docs/
@@ -26,7 +26,7 @@ exchekskills/
   exchek-docx/            # Document Converter (md → .docx) — from exchek-skill-docx/
 ```
 
-- **exchek-classify/** — Contents of private `exchek-skill/` (this folder), excluding `PUBLISH.md` and `.git`.
+- **exchek-classify/** — Contents of private `exchek-skill-classify/` (this folder), excluding `PUBLISH.md` and `.git`.
 - **exchek-csl/** — Contents of private `exchek-skill-csl/`.
 - **exchek-license/** — Contents of private `exchek-skill-license/` (excluding `.git`, `node_modules`).
 - **exchek-export-docs/**, **exchek-risk-triage/**, **exchek-ecp/**, **exchek-audit-lookback/**, **exchek-country-risk/**, **exchek-deemed-export/**, **exchek-encryption/**, **exchek-jurisdiction/**, **exchek-partner-compliance/**, **exchek-red-flag-assessment/**, **exchek-recordkeeping/** — Synced from the corresponding private `exchek-skill-*/` folders (excluding `.git`, `node_modules`).
@@ -46,7 +46,7 @@ exchekskills/
 PUB=exchekskills
 
 # Classify skill → exchek-classify (exclude PUBLISH.md and .git)
-rsync -av exchek-skill/ "$PUB/exchek-classify/" --exclude='.git' --exclude='PUBLISH.md' --exclude='node_modules'
+rsync -av exchek-skill-classify/ "$PUB/exchek-classify/" --exclude='.git' --exclude='PUBLISH.md' --exclude='node_modules'
 
 # CSL skill → exchek-csl
 rsync -av exchek-skill-csl/ "$PUB/exchek-csl/" --exclude='.git' --exclude='node_modules'
@@ -114,7 +114,7 @@ From the exchekinc repo root, sync only what changed:
 PUB=exchekskills   # base-of-truth clone in this repo; pull latest first: cd exchekskills && git pull
 
 # Update classify skill
-rsync -av exchek-skill/ "$PUB/exchek-classify/" --exclude='.git' --exclude='PUBLISH.md' --exclude='node_modules'
+rsync -av exchek-skill-classify/ "$PUB/exchek-classify/" --exclude='.git' --exclude='PUBLISH.md' --exclude='node_modules'
 
 # Update CSL skill
 rsync -av exchek-skill-csl/ "$PUB/exchek-csl/" --exclude='.git' --exclude='node_modules'

@@ -6,7 +6,8 @@ Plain-English security model for the SMB manufacturer who owns this install. No 
 
 - It can **read** files in the directory where you run Claude Code or Cowork.
 - It can **write** finished `.docx` reports to the folder you point it at (default `~/Documents/ExChek-Reports`).
-- It can **call two websites**: `www.ecfr.gov` (the U.S. regulations) and `data.trade.gov` (the screening list). Nothing else. There is no call back to ExChek's servers.
+- It can **call U.S. government websites**: `www.ecfr.gov` (the regulations) and `data.trade.gov` (the screening list, only when you screen a party).
+- It can **optionally call `api.exchek.us`** — but only if you pick the **ExChek API MCP** at the data-source gate (or leave it on the recommended default), or if `ecfr.gov` is down and the local server falls back to ExChek's public mirror. What goes there is limited to **CFR part numbers and search terms** — public reference lookups. Your item descriptions, party names, file content, and compliance results never leave your machine to ExChek. Want zero ExChek contact? Choose **Local MCP** at the gate (or set `regulatory_source` to `local`).
 - It cannot install other software, change your system settings, or send your data anywhere else.
 
 ## Where your data lives

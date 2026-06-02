@@ -56,6 +56,8 @@ Reference for conducting a deemed export / foreign national review under the EAR
 - **License exceptions:** Exceptions in Part 740 (e.g., TSU, TMP, CIV) apply to deemed exports when the terms are met for that “destination.” Document which exception (if any) applies and any restrictions (e.g., 740.2 eligibility).
 - **When to recommend license vs. exception vs. counsel:** If the destination is embargoed or highly restricted, or the ECCN is highly controlled (e.g., 9x515, 600 series), recommend license or counsel. If a clear exception applies (e.g., TSU for eligible mass-market encryption), document it. If borderline, **recommend counsel**.
 
+> **ITAR parallel (note, don't conflate).** This skill covers the **EAR** deemed export (15 C.F.R. § 734.2(b)). If the technical data is **ITAR**-controlled, the EAR deemed-export analysis does not apply — the release of ITAR technical data to a foreign person is governed by the ITAR. The closest ITAR analog is **22 CFR § 126.18** (intra-company/intra-organization transfers to bona fide regular employees who are dual nationals or third-country nationals, within an authorized end-user, subject to the diversion-prevention procedures in § 126.18(b)–(d)). Its core scope is unchanged by the 2025-12-30 AUKUS final rule, though Part 126 was amended on that date (e.g., the new § 126.7 AUKUS exemption and removal of the nontransfer/use certificate for SME/classified articles under §§ 126.5 and 126.7). If the data is ITAR, route to the CUI/§126.18 gate and DDTC — do not produce an EAR deemed-export determination.
+
 ---
 
 ## 7. When to say “Recommend counsel”

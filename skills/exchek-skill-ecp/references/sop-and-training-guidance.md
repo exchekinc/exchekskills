@@ -100,7 +100,7 @@ Tailor **depth** (awareness vs detailed) and **duration** (e.g. 30 min awareness
 
 ## 4. References to other ExChek skills
 
-- **exchek-skill (classification):** Classification memo and Order of Review; reference for Classification SOP and compliance training.
+- **exchek-skill-classify (classification):** Classification memo and Order of Review; reference for Classification SOP and compliance training.
 - **exchek-skill-csl:** Screening and DPS best practices; reference for Screening SOP and red-flag training.
 - **exchek-skill-license:** License determination; reference for License Determination SOP.
 - **exchek-skill-risk-triage:** Risk score and escalation; reference for Escalation SOP and training (when to hold/escalate).
