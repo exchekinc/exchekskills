@@ -168,10 +168,11 @@ The plugin registers **two MCP servers**, and a one-time **data-source gate** (o
 config) decides which one supplies live CFR text. Both return the identical eCFR structure, so your
 reasoning is the same either way. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) for the full picture.
 
-**1. Local MCP (`exchek`)** — `servers/exchek-mcp/`, a 13-tool stdio server (Node 18+, vanilla ES modules):
+**1. Local MCP (`exchek`)** — `servers/exchek-mcp/`, a 14-tool stdio server (Node 18+, vanilla ES modules):
 
 - `regulatory_source` — reports the configured data-source policy + tool-routing map
 - `ecfr_get_part`, `ecfr_search`, `ecfr_currency_check` — eCFR data straight from `ecfr.gov`, cached 24h
+- `ecfr_full_text` — full part/appendix **text** from `ecfr.gov` (e.g. the live BIS red flags in Supp. 3 to Part 732)
 - `csl_search`, `csl_sources` — live Trade.gov screening
 - `sanitize_input` — zero-width / bidi / homoglyph / injection / shell-meta scrubber
 - `validate_disclosure` — schema v1.0.0 validator on every report
@@ -201,7 +202,7 @@ exchekskills/
 ├── skills/                   # 20 skill packages (SKILL.md + templates + references) — invokable as /<skill-name>
 ├── agents/                   # 2 specialist agents
 ├── hooks/hooks.json          # SessionStart / PreToolUse / PostToolUse
-├── servers/exchek-mcp/       # Local-first MCP server (Node, 13 tools); the ExChek API MCP is remote (api.exchek.us)
+├── servers/exchek-mcp/       # Local-first MCP server (Node, 14 tools); the ExChek API MCP is remote (api.exchek.us)
 ├── docs/                     # SECURITY, TELEMETRY, DATA_STORAGE, DATA_SOURCES, COMMUNICATIONS_KIT, CHAMPION_KIT
 ├── tests/                    # node --test suites
 ├── marketplace.json

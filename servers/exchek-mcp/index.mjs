@@ -6,6 +6,7 @@
  *   - regulatory_source        Report the configured CFR data-source policy (ask/local/api) + routing map.
  *   - ecfr_get_part            Fetch (and cache) eCFR part structure from ecfr.gov.
  *   - ecfr_search              Substring search inside a cached part.
+ *   - ecfr_full_text           Fetch full part/appendix TEXT from ecfr.gov (e.g. Supp. 3 to Part 732 red flags).
  *   - ecfr_currency_check      Compute regulatory-currency age and drift warning.
  *   - csl_search               Live Trade.gov Consolidated Screening List search.
  *   - csl_sources              List available CSL source abbreviations.
@@ -71,6 +72,19 @@ const TOOLS = [
         query: { type: "string" },
       },
       required: ["part", "query"],
+    },
+  },
+  {
+    name: "ecfr_full_text",
+    description:
+      "Fetch the full regulatory TEXT (prose) of a part from ecfr.gov — not just the structure. Use for content that lives in section/appendix text, e.g. the live BIS red-flag list in Supplement No. 3 to Part 732 (pass part='732', contains='Supplement No. 3'). Resolves the latest amendment date, caches 24h. ecfr.gov only (api.exchek.us does not serve full text or mirror Part 732). Supported parts include 121, 732, 734, 738, 740, 742, 744, 746, 748, 762, 772, 774.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        part: { type: "string", description: "Part number, e.g. '732'." },
+        contains: { type: "string", description: "Optional marker; return the slice starting at its first occurrence (e.g. 'Supplement No. 3')." },
+      },
+      required: ["part"],
     },
   },
   {
@@ -207,6 +221,9 @@ const HANDLERS = {
   },
   async ecfr_search(args) {
     return ecfr.searchPart(args.part, args.query);
+  },
+  async ecfr_full_text(args) {
+    return ecfr.getFullText(args.part, { contains: args.contains });
   },
   async ecfr_currency_check(args) {
     return ecfr.regulatoryCurrencyAge(args.fetched_at_iso8601);

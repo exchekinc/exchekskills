@@ -2,6 +2,26 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.4.0] — 2026-06-02
+
+**Regulatory-currency pass: red flags, the BIS 50% Affiliates Rule, and the ITAR AUKUS exemption.** BIS and DDTC amended several rules the skills depend on. Most importantly, **Supplement No. 3 to 15 CFR Part 732 (the "Know Your Customer" red flags) now has 29 enumerated flags** (last amended 2025-11-12) — the skill shipped a generic 12-item list. This release refreshes the affected content and adds a way to keep the red flags from going stale again.
+
+### Added
+
+- **`ecfr_full_text` tool on the local MCP** (`servers/exchek-mcp/lib/ecfr.mjs` + `index.mjs`) — fetches the full regulatory **text** of a part/appendix from `ecfr.gov` (the structure tools only return hierarchy), with latest-amendment-date resolution and a 24h cache. Part **732** added to the supported set so the red-flag skill can pull the **live Supplement No. 3** at runtime (`part: "732"`, `contains: "Supplement No. 3"`). ecfr.gov-only — api.exchek.us does not serve full text or mirror Part 732. Local server is now **14 tools**.
+- **50% Affiliates Rule guidance** added to `exchek-skill-partner-compliance` (ownership-tracing flow-down) and cross-referenced in `exchek-skill-risk-triage`. (The `exchek-skill-csl` screening best-practices already covered it.)
+- **ITAR AUKUS § 126.7 + USML-currency notes** added to `exchek-skill-jurisdiction`; an ITAR-§126.18 parallel note to `exchek-skill-deemed-export`; and an ITAR DCS/authorization (§ 123.9, § 126.7/§ 126.5) note to `exchek-skill-export-docs`.
+
+### Changed
+
+- **`exchek-skill-red-flag-assessment` rewritten to the current 29-flag Supplement No. 3** — `references/end-use-red-flag-guidance.md` regrouped into Group A (general diversion, §§1–12), Group B (semiconductor/computing/600-series/D:5, §§13–23), and Group C (Entity List/FDP/AI-weights/ownership, §§24–29), each flag traceable to its official Supp. 3 number, plain-English for the SMB audience. Added a §29 "ownership" companion section on the 50% Affiliates Rule (incl. the 2025-11-10 → 2026-11-09 suspension). `SKILL.md` flow now pulls the live list via `ecfr_full_text` and notes Groups B/C apply conditionally. `templates/Red Flag Assessment Note.md` restructured to the three groups.
+
+### Regulatory notes (as of 2026-06-02)
+
+- **BIS Affiliates Rule** (≥50% ownership by Entity List/MEU parties extends controls to affiliates): interim final rule **2025-09-30** (FR doc 2025-19001); **suspended 2025-11-10 → 2026-11-09** (FR doc 2025-19846). The §29 ownership-tracing duty continues during the suspension.
+- **ITAR AUKUS § 126.7** exemption (Australia/UK/US): final rule effective **2025-12-30**; § 126.18's dual/third-country-national release scope is unchanged, so the CUI/§126.18 gate boilerplate in all skills remains accurate.
+- **USML revisions**: a temporary Category VIII modification was terminated in early 2025; DDTC's 2026 agenda includes Categories IV/XV (space), XI (semiconductor/PCB), and IX ("defense services"). Skills now tell users to verify the current USML.
+
 ## [3.3.0] — 2026-06-02
 
 **You now choose your regulatory-data source: the local MCP or the hosted ExChek API MCP.** v3.2.0 wired
