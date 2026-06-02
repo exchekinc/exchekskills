@@ -120,7 +120,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    ════════════════════════════════════
 
    CLASSIFY & SCREEN
-     exchek-skill                   ECCN classification (EAR)
+     exchek-skill-classify                   ECCN classification (EAR)
      exchek-skill-jurisdiction      ITAR vs EAR determination
      exchek-skill-encryption        Encryption classification (ENC/5x992)
      exchek-skill-csl               Consolidated Screening List search
@@ -158,7 +158,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
 
 This module produces real artifacts. The user will leave it with a classification record, a screening result, and a country risk assessment — all saved and logged.
 
-4. **Stop 1.1 — exchek-skill** (ECCN classification) — HANDS-ON
+4. **Stop 1.1 — exchek-skill-classify** (ECCN classification) — HANDS-ON
 
    Present: "**Classification** is where everything starts. Before you can export anything, you need its ECCN — the Export Control Classification Number that determines every rule that follows."
 
@@ -171,7 +171,7 @@ This module produces real artifacts. The user will leave it with a classificatio
    - "Let's classify something real. What's your company's most commonly exported product? Describe it in a sentence."
 
    Accept the item description. Then:
-   - Route to `exchek-skill` with the item description. Run the full classification.
+   - Route to `exchek-skill-classify` with the item description. Run the full classification.
    - When classification completes, capture the ECCN result and save it to `.exchek/state/onboarding-progress.json` under `artifacts.classification`.
 
    Present: "Your first classification record is created. **{item}** classified as **{ECCN}**. This is now in your transaction log — audit-ready."

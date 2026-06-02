@@ -340,7 +340,7 @@ When `/exchek` is followed by a command, route to the corresponding sub-skill:
 
 | Command | Routes to | Description |
 |---------|-----------|-------------|
-| `/exchek classify [item]` | exchek-skill | ECCN classification |
+| `/exchek classify [item]` | exchek-skill-classify | ECCN classification |
 | `/exchek screen [party]` | exchek-skill-csl | Consolidated Screening List search |
 | `/exchek license [item] [dest]` | exchek-skill-license | License determination (Part 738/740) |
 | `/exchek jurisdiction [item]` | exchek-skill-jurisdiction | ITAR vs EAR jurisdiction check |

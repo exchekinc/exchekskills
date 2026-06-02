@@ -58,10 +58,10 @@ Clone the repo and copy specific skills into your agent's skills directory:
 
 ```bash
 git clone https://github.com/exchekinc/exchekskills.git
-cp -r exchekskills/skills/exchek-skill ~/.claude/skills/exchek-skill
+cp -r exchekskills/skills/exchek-skill-classify ~/.claude/skills/exchek-skill-classify
 ```
 
-Replace `exchek-skill` with the skill folder name you want. Restart your agent or run `claude skills list` to pick up the new skill.
+Replace `exchek-skill-classify` with the skill folder name you want. Restart your agent or run `claude skills list` to pick up the new skill.
 
 ### Option 3: Install all skills at once
 
@@ -76,7 +76,7 @@ cp -r exchekskills/skills/* ~/.claude/skills/
 
 | Skill | Folder | Description |
 |-------|--------|-------------|
-| **ECCN Classification** | `exchek-skill` | Classify items for U.S. export control (15 CFR 774, 22 CFR 121). Human-in-the-loop; audit-ready report. |
+| **ECCN Classification** | `exchek-skill-classify` | Classify items for U.S. export control (15 CFR 774, 22 CFR 121). Human-in-the-loop; audit-ready report. |
 | **CSL Search** | `exchek-skill-csl` | Search the Consolidated Screening List via Trade.gov API. Fuzzy search, all parameters. Requires free API key from [developer.trade.gov](https://developer.trade.gov). |
 | **License Determination** | `exchek-skill-license` | Determine EAR license requirements and exceptions (Parts 738, 740, 742, 744, 746). Audit-ready memo. |
 | **Jurisdiction (ITAR vs EAR)** | `exchek-skill-jurisdiction` | Guided ITAR vs EAR questionnaire. Produces jurisdiction memo with next steps (DDTC vs BIS). |

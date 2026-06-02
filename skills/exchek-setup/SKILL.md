@@ -194,7 +194,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
 
    Accept the item description from the user. Then:
 
-   **8a. Live classification** — Using the `exchek-skill` classification logic (invoke inline, do not route to the separate skill), classify the item against the Commerce Control List. Show the work:
+   **8a. Live classification** — Using the `exchek-skill-classify` classification logic (invoke inline, do not route to the separate skill), classify the item against the Commerce Control List. Show the work:
 
    - Identify the relevant CCL category
    - Walk through the technical parameters
