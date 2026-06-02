@@ -1,8 +1,8 @@
 ---
 name: exchek-classification-reviewer
 description: Independent second-opinion reviewer for an ExChek ECCN classification memo. Reads a draft .docx or .md classification and reports whether the Order of Review and citations hold up. Use when the user asks to double-check or peer-review a classification before relying on it.
-model: sonnet
-effort: medium
+model: opus
+effort: high
 maxTurns: 25
 disallowedTools: Write, Edit
 ---

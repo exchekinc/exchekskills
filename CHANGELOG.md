@@ -2,6 +2,23 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.4.1] — 2026-06-02
+
+**Audit-trail integrity fix + strongest model on the high-stakes reviewer.** Tuning the plugin to the latest Claude Code/model capabilities, Cowork-first (everything stays automatic — no CLI for the user).
+
+### Fixed
+
+- **Audit log no longer self-corrupts on report emission.** The `PostToolUse` hook appended a **plain, unsigned** line (`{"ts":…,"event":"report_emitted"}`) to `audit.jsonl`, which has no `prev_hmac`/`hmac` — so `mcp__exchek__audit_verify` would (correctly) report the chain as broken after every report. Fixed by **logging the `report_emitted` event from inside the MCP's `report_to_docx` tool**, where the HMAC key lives, so the event is a valid link in the chain. The unsigned hook write was removed.
+
+### Changed
+
+- **`exchek-classification-reviewer` agent → `model: opus`, `effort: high`** (was `sonnet`/`medium`). The independent second opinion on a legal determination is exactly where the most capable model pays off; the bulk `exchek-audit-runner` stays on `sonnet`. Uses the `opus` alias so it tracks the latest Opus automatically.
+- **MCP server + package versions aligned to 3.4.1** (`servers/exchek-mcp/index.mjs` `VERSION`, `package.json`); corrected the package description that still claimed "No call-home."
+
+### Added
+
+- **Read-only `SessionEnd` seal.** A new `SessionEnd` hook runs `node …/lib/audit.mjs seal`, which **verifies** the chain and appends a timestamped record to a sidecar `audit-seals.jsonl` — it never writes to the HMAC chain itself (so a hook can't corrupt it) and defers to `mcp__exchek__audit_verify` if it can't see the audit key. New exported `seal()` + a tiny `verify`/`seal` CLI in `lib/audit.mjs` (Node built-ins only — runs without `node_modules`). Note: if a host (e.g. some Cowork builds) doesn't fire `SessionEnd`, the integrity fix above is independent and still applies; the chain is verifiable on demand regardless.
+
 ## [3.4.0] — 2026-06-02
 
 **Regulatory-currency pass: red flags, the BIS 50% Affiliates Rule, and the ITAR AUKUS exemption.** BIS and DDTC amended several rules the skills depend on. Most importantly, **Supplement No. 3 to 15 CFR Part 732 (the "Know Your Customer" red flags) now has 29 enumerated flags** (last amended 2025-11-12) — the skill shipped a generic 12-item list. This release refreshes the affected content and adds a way to keep the red flags from going stale again.

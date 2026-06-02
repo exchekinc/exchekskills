@@ -40,7 +40,7 @@ import { validateDisclosure } from "./lib/disclosure.mjs";
 import { convert as docxConvert } from "./lib/docx.mjs";
 import { resolveRegulatorySource } from "./lib/datasource.mjs";
 
-const VERSION = "3.3.0";
+const VERSION = "3.4.1";
 
 const TOOLS = [
   {
@@ -252,7 +252,21 @@ const HANDLERS = {
     return audit.tail(n);
   },
   async report_to_docx(args) {
-    return docxConvert(args || {});
+    const out = await docxConvert(args || {});
+    // Log report emission to the HMAC-chained audit log from inside the MCP (which
+    // holds the key) so the event is part of the verifiable chain. Best-effort:
+    // a logging failure must never block report generation.
+    try {
+      await audit.append({
+        event_type: "report_emitted",
+        tool: "report_to_docx",
+        summary: out?.docx_path ? `report generated: ${out.docx_path}` : "report generated",
+        metadata: { docx_path: out?.docx_path ?? null, json_path: out?.json_path ?? null, bytes: out?.bytes ?? null },
+      });
+    } catch {
+      /* non-fatal */
+    }
+    return out;
   },
   async cui_gate(args) {
     const yes = (v) => String(v || "").toLowerCase() === "yes";

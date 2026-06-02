@@ -12,6 +12,7 @@ import { createHmac, randomBytes } from "node:crypto";
 import { appendFile, readFile, writeFile, stat, mkdir, chmod } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 function dataDir() {
   return process.env.CLAUDE_PLUGIN_DATA || join(process.env.HOME || "/tmp", ".exchek-mcp-data");
@@ -105,4 +106,61 @@ export async function tail(n = 50) {
 export async function size() {
   try { const s = await stat(logPath()); return { bytes: s.size, mtime: s.mtime.toISOString() }; }
   catch { return { bytes: 0, mtime: null }; }
+}
+
+function sealPath() { return join(dataDir(), "audit-seals.jsonl"); }
+
+// Whether this process can reproduce the HMAC key the MCP server used (env key, or
+// the persisted key file). If not, a session-end hook must NOT claim a verify result.
+function keyAvailable() {
+  const supplied = process.env.CLAUDE_PLUGIN_OPTION_AUDIT_KEY;
+  if (supplied && supplied.length >= 32) return true;
+  return existsSync(keyPath());
+}
+
+// Read-only "seal": verify the chain and append a timestamped record to a SIDECAR
+// file (audit-seals.jsonl) — never to the chained log itself. Safe to run from a
+// SessionEnd hook because it cannot alter or corrupt the HMAC chain. If the key is
+// not available to this process (e.g. user set a custom key the hook can't see), it
+// records that the chain exists but defers to mcp__exchek__audit_verify.
+export async function seal() {
+  await mkdir(dataDir(), { recursive: true });
+  const ts = new Date().toISOString();
+  let rec;
+  if (!keyAvailable()) {
+    rec = {
+      ts,
+      sealed: false,
+      reason: "audit key not available to the session-end hook; run mcp__exchek__audit_verify for the authoritative chain check",
+    };
+  } else {
+    const v = await verify();
+    rec = { ts, sealed: true, verified: v.ok, lines: v.lines, broken_at: v.broken_at ?? null, reason: v.reason || null };
+  }
+  await appendFile(sealPath(), JSON.stringify(rec) + "\n", { mode: 0o600 });
+  return rec;
+}
+
+// CLI: `node audit.mjs verify` | `node audit.mjs seal` — read-only chain operations
+// for hooks. Never appends to the HMAC chain (only the MCP server, which holds the
+// key, does that). Exit 0 on ok/sealed, 2 on a detected break, 1 on error.
+const invokedDirectly =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) {
+  const cmd = process.argv[2];
+  const run = cmd === "verify" ? verify() : cmd === "seal" ? seal() : null;
+  if (!run) {
+    process.stderr.write("usage: node audit.mjs <verify|seal>\n");
+    process.exit(1);
+  } else {
+    run
+      .then((r) => {
+        process.stdout.write(JSON.stringify(r) + "\n");
+        process.exit(r && r.ok === false ? 2 : 0);
+      })
+      .catch((e) => {
+        process.stderr.write("audit cli error: " + e.message + "\n");
+        process.exit(1);
+      });
+  }
 }
