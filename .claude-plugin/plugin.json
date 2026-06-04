@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
-  "version": "3.4.2",
+  "displayName": "ExChek Export Compliance",
+  "version": "3.4.3",
   "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
@@ -32,9 +33,6 @@
     "audit-ready",
     "cowork"
   ],
-  "skills": "./skills/",
-  "agents": "./agents/",
-  "hooks": "./hooks/hooks.json",
   "mcpServers": {
     "exchek": {
       "command": "node",
