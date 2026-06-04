@@ -30,6 +30,20 @@ All notable changes to the **exchekskills** plugin. Follows [semver](https://sem
   this precisely and confirm what is **never** logged (search terms, skill arguments, item context,
   party names, results, PII), plus how to avoid it entirely (`regulatory_source: local`). No code change;
   aligns the disclosure with the hosted API's logging (exchekinc/Exchekwebsitecloudflare#24).
+- **LICENSE v2.0 — friendly-fire fixes (DRAFT, pending IP-counsel review).** Four clauses that were
+  prohibiting things ExChek's own strategy and users depend on were narrowed, and two structural
+  improvements added. The adversarial armor (no-compete 2(c), no white-label, trademark reservation,
+  security/attack prohibitions, monitoring, Delaware venue, $100 cap) is unchanged. Fixes: **(1)** new
+  §1A authorizes service-provider use (broker/consultant on behalf of clients) and attribution-preserving
+  integrations that install the free public engine — without weakening 2(b)/2(c); **(2)** §2(i) now
+  permits bona-fide agent-native/automated use within published rate limits, prohibiting only abuse,
+  over-limit, circumvention, or derivative-dataset/competing use; **(3)** §2(e) reverse-engineering is
+  scoped to competing-product/non-public-logic purposes, with a good-faith integration-development
+  carve-out; **(4)** §2(f)/§3(e) now permit retaining outputs in your own compliance records (aligning
+  with the 15 CFR §762.6(a) five-year retention duty), and new §4A disclaims ownership of public-domain
+  U.S. Government text (17 U.S.C. §105) while preserving rights over ExChek's formatting/mappings/logic.
+  §5 trade-secret claim scoped to non-public material; §9(a) adds 30-day notice for unilateral license
+  changes (immediate termination preserved for breach/security). Version/date header added.
 
 ## [3.4.4] — 2026-06-04
 
