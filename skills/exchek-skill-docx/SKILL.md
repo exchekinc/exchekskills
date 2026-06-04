@@ -74,9 +74,40 @@ When the user wants a .docx, client-ready, or professional report, follow these 
 
 - **If your environment can export the response to Word:** Tell the user to use "Export to Word" or "Download as .docx" (or equivalent) on this response.
 - **If you have file write access and the ExChek Document Converter is available:** Other content skills write to a temp .md, run the converter, then deliver only the .docx. For standalone conversion, run the converter on the user's existing .md path (see Flow below), then tell the user to open the **.docx file**.
+- **If you can run code but the ExChek converter / `mcp__exchek__report_to_docx` is NOT available (e.g., Claude Cowork or a browser code sandbox):** Build the `.docx` directly with a docx library (docx-js, or python-docx) following the **Table & layout requirements** section below. These are **mandatory** — library defaults produce borderless, invisible tables, the single most common report defect. Run the **delivery gate** check before sending the file.
 - **If the user will copy into Word:** Say: "Copy the report below into Microsoft Word, then select each section title and apply **Heading 1** or **Heading 2** from the Styles pane for a professional look."
 
 **Reminder:** When you generate a .docx via the script, always tell the user to open the **.docx** file, not the .md, so they see formatted output.
+
+## Table & layout requirements for a directly-built .docx (MANDATORY)
+
+When you build the `.docx` yourself — any environment where the ExChek converter is unavailable — the output MUST match what the converter produces, or **tables render invisibly in Word**. This is the recurring "the tables aren't visible" defect. Every table requires:
+
+- **Visible borders on every cell** — single line, ~0.5pt (sz 4), black. **Do not rely on the library's default borders.**
+- **Header row** — bold text **and** light-grey shading (fill `D9D9D9`).
+- **Widths set twice** — set both the table width **and** each column/cell width explicitly, in twips (DXA type), summing to **9360** (US Letter minus 1″ margins). Equal split = `floor(9360 / columns)`.
+- **Cell margins** — ~40 twips top/bottom, ~80 left/right.
+- **Page** — US Letter (12240 × 15840 twips), 1″ (1440 twip) margins on all sides.
+- **Font** — Calibri 11pt body; Headings 14/12/11pt bold (the ExChek house style).
+
+**python-docx (common in browser sandboxes) — the #1 cause of invisible tables:** its default table style is `Table Normal`, which has **no borders**. Setting column widths alone does nothing. You MUST set `table.style = 'Table Grid'` **or** write explicit `<w:tblBorders>` + `<w:tcBorders>` (val `single`, sz 4). Shade the header row via the cell's `<w:shd w:fill="D9D9D9"/>`.
+
+**docx-js (Node):** pass an explicit `borders` object on the `Table` and on each `TableCell` (`BorderStyle.SINGLE`), `shading` on header cells (`ShadingType.CLEAR`, fill `D9D9D9`), `margins` on cells, and section `page.size` / `page.margin`. Mirror `skills/exchek-skill-docx/scripts/report-to-docx.mjs` exactly.
+
+**Sandbox notes:** if the runtime's `package.json` sets `"type": "module"`, write generation scripts as **`.cjs`** (or use ESM syntax). Some sandbox output mounts disallow `rm` — write to a fresh path instead of deleting.
+
+**Delivery gate — verify before you send.** Re-open the generated `.docx` and confirm tables actually have visible borders. Minimal check (python is present in most sandboxes):
+
+```python
+import zipfile, re
+xml = zipfile.ZipFile("report.docx").read("word/document.xml").decode()
+tb = re.search(r"<w:tblBorders>.*?</w:tblBorders>", xml, re.S)
+vals = re.findall(r'w:val="(\w+)"', tb.group(0)) if tb else []
+assert tb and vals and all(v not in ("nil", "none") for v in vals), \
+    "TABLE BORDERS MISSING — fix the table styling before delivering this report"
+```
+
+If the assertion fails, fix the styling and regenerate. **Never deliver a report whose tables you have not verified render with visible borders.**
 
 ## Flow
 

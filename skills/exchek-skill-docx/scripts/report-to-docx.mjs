@@ -23,7 +23,7 @@ import { resolve, dirname, basename } from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 
 // docx is loaded dynamically in main() (see module docstring). Assigned on success.
-let Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType;
+let Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -198,6 +198,16 @@ function runsToParagraphChildren(runs, prefix = "") {
 }
 
 function buildDocument(blocks) {
+  // Explicit table styling. Do NOT rely on docx-js default borders: they render
+  // inconsistently across Word/Pages/LibreOffice, and any consumer that rebuilds
+  // the doc (e.g. python-docx in a Cowork sandbox) defaults to NO borders. Always
+  // set borders, header shading, and cell margins explicitly. (Constants live here,
+  // not at module scope, because BorderStyle/ShadingType are assigned at runtime.)
+  const SINGLE = { style: BorderStyle.SINGLE, size: 4, color: "000000" };
+  const TABLE_BORDERS = { top: SINGLE, bottom: SINGLE, left: SINGLE, right: SINGLE, insideHorizontal: SINGLE, insideVertical: SINGLE };
+  const CELL_BORDERS = { top: SINGLE, bottom: SINGLE, left: SINGLE, right: SINGLE };
+  const CELL_MARGINS = { top: 40, bottom: 40, left: 80, right: 80 }; // twips
+  const HEADER_SHADING = { type: ShadingType.CLEAR, color: "auto", fill: "D9D9D9" };
   const children = [];
 
   for (const block of blocks) {
@@ -245,17 +255,22 @@ function buildDocument(blocks) {
           const columnWidth = Math.floor(PAGE_USABLE_WIDTH_TWIPS / columnCount);
           const columnWidths = Array(columnCount).fill(columnWidth);
 
-          const tableRows = block.rows.map((cells) => {
+          const tableRows = block.rows.map((cells, rowIndex) => {
+            const isHeader = rowIndex === 0; // markdown tables put the header in row 0
             const padded = cells.concat(Array(columnCount - cells.length).fill(""));
             return new TableRow({
+              tableHeader: isHeader, // repeat the header row if the table breaks across pages
               children: padded.map(
                 (cellText) =>
                   new TableCell({
                     width: { size: columnWidth, type: WidthType.DXA },
+                    borders: CELL_BORDERS,
+                    margins: CELL_MARGINS,
+                    shading: isHeader ? HEADER_SHADING : undefined,
                     children: [
                       new Paragraph({
                         children: parseInlineFormatting(cellText).map((r) =>
-                          new TextRun({ text: r.text, bold: r.bold, italics: r.italic })
+                          new TextRun({ text: r.text, bold: isHeader || r.bold, italics: r.italic })
                         ),
                         spacing: { after: 60 },
                       }),
@@ -265,7 +280,7 @@ function buildDocument(blocks) {
             });
           });
           children.push(
-            new Table({ rows: tableRows, width: { size: PAGE_USABLE_WIDTH_TWIPS, type: WidthType.DXA }, columnWidths })
+            new Table({ rows: tableRows, width: { size: PAGE_USABLE_WIDTH_TWIPS, type: WidthType.DXA }, columnWidths, borders: TABLE_BORDERS })
           );
           children.push(new Paragraph({ children: [new TextRun({ text: "" })], spacing: { after: 120 } }));
         }
@@ -293,7 +308,15 @@ function buildDocument(blocks) {
         { id: "Heading3", name: "Heading 3", basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: "Calibri", size: 22, bold: true }, paragraph: { spacing: { before: 120, after: 60 } } },
       ],
     },
-    sections: [{ properties: {}, children }],
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840 }, // US Letter, 8.5" x 11" (twips)
+          margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }, // 1" all sides -> 9360 usable
+        },
+      },
+      children,
+    }],
   });
 }
 
@@ -442,7 +465,7 @@ async function main() {
     // via NODE_PATH — and CJS `require` honors it (and the upward node_modules walk).
     const { createRequire } = await import("node:module");
     const requireDocx = createRequire(import.meta.url);
-    ({ Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } = requireDocx("docx"));
+    ({ Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType } = requireDocx("docx"));
     try {
       const v = requireDocx("docx/package.json").version;
       if (compareVersion(v, MIN_DOCX_VERSION) < 0) {

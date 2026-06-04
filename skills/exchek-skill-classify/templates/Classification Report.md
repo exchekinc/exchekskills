@@ -128,6 +128,8 @@ This classification analysis follows the three-path methodology authorized under
 
 **Analysis:** {{STEP4_9x515_600_ANALYSIS}}
 
+*If a 9x515 or "600 series" entry controls the item through a **"specially designed"** catch-all (e.g., a `.x`/`.y` paragraph using that term), complete the structured §772.1 catch-and-release analysis in Step 5 below before classifying here.*
+
 **Determination:** {{STEP4_DETERMINATION}}
 
 ---
@@ -135,6 +137,8 @@ This classification analysis follows the three-path methodology authorized under
 ### Step 5 — Non-600 series ECCN review (Commerce Control List)
 
 **Applicable regulation:** 15 C.F.R. Part 774, Supplement No. 1 (Commerce Control List).
+
+**CCL/EAR version consulted:** {{CCL_VERSION_DATE}} *(eCFR "current as of" date or Federal Register amendment relied upon — pin the rule set this analysis stands on).*
 
 **CCL category identified:** {{CCL_CATEGORY}} — {{CCL_CATEGORY_NAME}}  
 **Product group identified:** {{PRODUCT_GROUP}} — {{PRODUCT_GROUP_NAME}}
@@ -145,7 +149,35 @@ This classification analysis follows the three-path methodology authorized under
 |------|-------------|----------------------|---------------------|
 | {{ECCN_REVIEW_TABLE}} |
 
-**"Specially designed" analysis** *(if applicable):* {{SPECIALLY_DESIGNED_ANALYSIS}}
+**Controlling-parameter comparison** *(for the proposed ECCN — quote each control threshold from the CCL text and map the item's measured specification against it; this is the traceability that distinguishes a defensible memo):*
+
+| ECCN control parameter (quoted CCL text) | Item's actual specification | Meets threshold? |
+|------------------------------------------|-----------------------------|------------------|
+| {{PARAM_COMPARISON_TABLE}} |
+
+**"Specially designed" analysis (15 C.F.R. § 772.1)** *(complete whenever a controlling or candidate ECCN — including a 9x515/600-series catch-all — uses the term "specially designed"; otherwise state "Not applicable — controlling ECCN does not use 'specially designed.'")*
+
+*Paragraph (a) — the "catch":*
+
+| Catch prong | Met? | Basis |
+|-------------|------|-------|
+| **(a)(1)** — as a result of "development," has properties *peculiarly responsible* for achieving or exceeding the controlled performance levels, characteristics, or functions of the relevant ECCN | {{SD_A1}} | {{SD_A1_BASIS}} |
+| **(a)(2)** — is a part, component, accessory, attachment, or software *for use in or with* a commodity/defense article enumerated or described on the CCL or USML | {{SD_A2}} | {{SD_A2_BASIS}} |
+
+*If neither (a) prong is met, the item is **not** "specially designed" — skip paragraph (b).*
+
+*Paragraph (b) — the "release" (an item caught by (a) is released — **not** "specially designed" — if **any** (b) prong applies):*
+
+| Release prong | Applies? | Basis |
+|---------------|----------|-------|
+| **(b)(1)** — described/controlled by another ECCN not using "specially designed," or is EAR99 | {{SD_B1}} | {{SD_B1_BASIS}} |
+| **(b)(2)** — enumerated low-level part: fastener, washer, spacer, insulator, grommet, bushing, spring, wire, or solder | {{SD_B2}} | {{SD_B2_BASIS}} |
+| **(b)(3)** — same function, performance capabilities, and same or "equivalent" form and fit as a part/component in production that is not "specially designed" | {{SD_B3}} | {{SD_B3_BASIS}} |
+| **(b)(4)** — developed with "knowledge" it would be for use in both controlled and non-controlled items, and is now described by the non-controlled item's ECCN/EAR99 | {{SD_B4}} | {{SD_B4_BASIS}} |
+| **(b)(5)** — developed for general-purpose use, with no "knowledge" of a particular controlled end item | {{SD_B5}} | {{SD_B5_BASIS}} |
+| **(b)(6)** — developed as a general-purpose part/component for general application | {{SD_B6}} | {{SD_B6_BASIS}} |
+
+**"Specially designed" determination:** {{SD_DETERMINATION}} *(Caught by (a) **and** not released by any (b) prong → "specially designed." Otherwise → not "specially designed." Verify each prong against the live § 772.1 text and the BIS "Specially Designed" decision tool.)*
 
 **Proposed ECCN:** {{PROPOSED_ECCN}}
 
@@ -255,8 +287,11 @@ This classification analysis follows the three-path methodology authorized under
 | **License required?** | {{LICENSE_REQUIRED}} |
 | **License exception (if applicable)** | {{LICENSE_EXCEPTION_CITED}} |
 | **Reporting obligation (if any)** | {{REPORTING_OBLIGATION}} |
+| **Determination confidence** | {{CONFIDENCE_LEVEL}} — High / Medium / Low |
 | **CCATS submission recommended?** | {{CCATS_RECOMMENDED}} |
 | **Next review date** | {{NEXT_REVIEW_DATE_FINAL}} |
+
+**Confidence and CCATS decision rule.** State the basis for the confidence rating in one or two sentences ({{CONFIDENCE_BASIS}}). Where confidence is **Medium or Low** — e.g., the controlling ECCN turns on a contested technical parameter, a "specially designed" catch-and-release that is not clear-cut, or genuine ITAR-vs-EAR ambiguity — a **CCATS** request to BIS via SNAP-R (or a DDTC Commodity Jurisdiction request) is **recommended before relying on this classification for an export**, and Appendix A should be completed.
 
 **Classification rationale summary:**
 
@@ -272,7 +307,7 @@ This classification analysis follows the three-path methodology authorized under
 
 **Regulatory currency.**
 
-- **eCFR / ExChek API:** Regulatory text for Parts **`{{CFR_PARTS_CITED}}`** pulled at **`{{ECFR_PULLED_AT_ISO8601}}`** via **`{{DATA_SOURCE}}`** (ExChek API `api.exchek.us` primary, `ecfr.gov` fallback).
+- **eCFR / ExChek API:** Regulatory text for Parts **`{{CFR_PARTS_CITED}}`** pulled at **`{{ECFR_PULLED_AT_ISO8601}}`** via **`{{DATA_SOURCE}}`** (per the `regulatory_source` setting: the **local** ExChek server uses `www.ecfr.gov` as primary with `api.exchek.us` as fallback; the **hosted** ExChek API MCP uses `api.exchek.us`).
 - **External lists queried (if any):**
   - **Trade.gov CSL:** queried at **`{{CSL_QUERIED_AT_ISO8601}}`** (lists: `{{CSL_SOURCES_QUERIED}}`; per-list source timestamps: `{{CSL_SOURCE_TIMESTAMPS}}`).
   - **DoD 1260H list:** retrieved **`{{DOD_1260H_DATE}}`**.
@@ -353,6 +388,22 @@ Printed name: {{ECO_APPROVAL_NAME}}  Title: {{ECO_APPROVAL_TITLE}}
 | Version | Date | Author | Description of change | Trigger |
 |---------|------|--------|----------------------|---------|
 | {{VERSION_LOG}} |
+
+---
+
+## Appendix A — Draft CCATS submission *(complete only if a CCATS is recommended)*
+
+Complete this appendix when Section 8 marks a CCATS as recommended (typically Medium or Low confidence, or any item where ENC (b)(2)/(b)(3) applies). A Commodity Classification request is filed with BIS through **SNAP-R** under **15 C.F.R. § 748.3**. This appendix pre-stages the key fields so the filer transcribes them directly into SNAP-R; it is preparatory only and is **not** itself a submission.
+
+| SNAP-R field | Content |
+|--------------|---------|
+| **Block 22(a) — Recommended classification** | {{CCATS_BLOCK22A_ECCN}} *(the ECCN — or EAR99 — this memo recommends)* |
+| **Reason(s) for control** | {{CCATS_REASONS_FOR_CONTROL}} |
+| **Block 24 — Justification / technical rationale** | {{CCATS_BLOCK24_JUSTIFICATION}} *(concise technical basis tying the item's parameters to the recommended ECCN's control text — summarize the Step 5 controlling-parameter comparison and the "specially designed" determination)* |
+| **Supporting documents to attach** | {{CCATS_SUPPORTING_DOCS}} *(datasheets, specifications, brochures, photographs, block diagrams — the exhibits from Section 2)* |
+| **Submitter / point of contact** | {{CCATS_SUBMITTER}} |
+
+*ENC items under License Exception ENC (b)(2) or (b)(3) **require** a CCATS; ENC (b)(1) items may file one to eliminate the annual self-classification report. File via SNAP-R at https://snapr.bis.doc.gov.*
 
 ---
 

@@ -39,6 +39,8 @@ Top international trade law firms — including Steptoe, Gibson Dunn, Torres Tra
 
 One hallmark of law firm-quality classification memos is the explicit consideration and rejection of alternative classifications. If an item could plausibly be classified under ECCN 3A001 but analysis shows 3A991 is correct, the memo must explain *why* 3A001's technical parameters are not met. This demonstrates good faith and preempts the argument that the lower-control classification was adopted carelessly. The same logic applies at the ITAR vs. EAR decision point: document *why* the item is not on the USML, citing specific USML categories reviewed.
 
+Wherever a controlling or candidate ECCN turns on the term **"specially designed,"** run the **§ 772.1 catch-and-release explicitly** — first the paragraph (a) "catch," then each paragraph (b)(1)–(b)(6) "release" prong — rather than asserting a conclusion. An item caught by (a) but released by any (b) prong is *not* "specially designed." Documenting this prong-by-prong is the single biggest defensibility differentiator for parts, components, and software, and is the analysis BIS and opposing counsel look for. Finally, state a **determination confidence** (High/Medium/Low); route Medium/Low determinations to a CCATS before relying on them.
+
 ### Software and SaaS: The Most Litigated Trap
 
 Torres Trade Law has documented that SaaS and software companies make four recurring, legally significant classification errors:
@@ -256,7 +258,29 @@ This classification analysis follows the three-path methodology authorized under
 | [e.g., 3A991] | [CCL description] | [✓] Yes | [Technical comparison — cite specific subparagraph] |
 | [...] | [...] | [...] | [...] |
 
-**"Specially Designed" Analysis** *(if applicable)*: [Address 15 C.F.R. § 772.1 definition of "specially designed" if relevant ECCN uses that control parameter]
+**"Specially Designed" Analysis (15 C.F.R. § 772.1)** *(complete whenever a controlling or candidate ECCN — including a 9x515/600-series catch-all — uses the term; otherwise "Not applicable")*. Run the **catch-and-release** explicitly — do not assert a result:
+
+*Paragraph (a) — the "catch":*
+
+| Catch prong | Met? | Basis |
+|---|---|---|
+| (a)(1) — as a result of "development," properties *peculiarly responsible* for achieving/exceeding the relevant ECCN's controlled performance, characteristics, or functions | [ ] Yes / [ ] No | [basis] |
+| (a)(2) — part/component/accessory/attachment/software *for use in or with* a CCL- or USML-described item | [ ] Yes / [ ] No | [basis] |
+
+*If neither (a) prong is met → not "specially designed"; skip (b).*
+
+*Paragraph (b) — the "release" (a caught item is released — **not** "specially designed" — if **any** prong applies):*
+
+| Release prong | Applies? | Basis |
+|---|---|---|
+| (b)(1) — described by another ECCN not using "specially designed," or EAR99 | [ ] | [basis] |
+| (b)(2) — fastener, washer, spacer, insulator, grommet, bushing, spring, wire, or solder | [ ] | [basis] |
+| (b)(3) — same function, performance, and same/"equivalent" form & fit as a non-"specially designed" part in production | [ ] | [basis] |
+| (b)(4) — developed with "knowledge" of use in both controlled & non-controlled items, now described by the non-controlled ECCN/EAR99 | [ ] | [basis] |
+| (b)(5) — developed for general-purpose use, no "knowledge" of a particular controlled end item | [ ] | [basis] |
+| (b)(6) — developed as a general-purpose part/component for general application | [ ] | [basis] |
+
+**Determination**: caught by (a) **and** not released by any (b) prong → "specially designed." Verify each prong against the live § 772.1 text and the BIS "Specially Designed" decision tool.
 
 **Proposed ECCN**: [e.g., 3A991.a]
 
@@ -387,8 +411,11 @@ If 5D002 applies and mass market treatment is unavailable, the item may be eligi
 | **License Required?** | [ ] Yes / [ ] No — No License Required (NLR) / [ ] License Exception applies |
 | **License Exception (if applicable)** | [e.g., ENC(b)(1)] |
 | **Reporting Obligation (if any)** | [e.g., Annual self-classification report per § 740.17(e)(3)] |
+| **Determination Confidence** | [ ] High / [ ] Medium / [ ] Low — state the basis |
 | **CCATS Submission Recommended?** | [ ] Yes — submit for formal BIS confirmation / [ ] No |
 | **Next Review Date** | [Date — recommend annual or upon material change to product] |
+
+*Decision rule: where confidence is **Medium or Low** — a contested technical parameter, a non-clear-cut "specially designed" catch-and-release, or genuine ITAR-vs-EAR ambiguity — recommend a CCATS (or DDTC CJ) before relying on the classification for an export, and complete the draft CCATS appendix.*
 
 **Classification Rationale Summary**:
 
@@ -471,6 +498,22 @@ Printed Name: ___________________    Title: ___________
 |---|---|---|---|---|
 | 1.0 | [YYYY-MM-DD] | [Name] | Initial classification | New product/item |
 | 2.0 | [YYYY-MM-DD] | [Name] | [Describe change] | [e.g., Reg change / product update / audit finding] |
+
+***
+
+#### Appendix A — Draft CCATS Submission *(complete only if a CCATS is recommended)*
+
+Complete when Section 8 marks a CCATS as recommended (Medium/Low confidence, or any item under ENC (b)(2)/(b)(3)). A Commodity Classification request is filed with BIS via **SNAP-R** under **15 C.F.R. § 748.3**. This pre-stages the fields for transcription into SNAP-R; it is preparatory only, not a submission.
+
+| SNAP-R field | Content |
+|---|---|
+| **Block 22(a) — Recommended classification** | [ECCN or EAR99 this memo recommends] |
+| **Reason(s) for control** | [e.g., NS, AT, EI] |
+| **Block 24 — Justification / technical rationale** | [concise technical basis tying the item's parameters to the recommended ECCN's control text — summarize the controlling-parameter comparison and the "specially designed" determination] |
+| **Supporting documents to attach** | [datasheets, specifications, brochures, photographs, block diagrams — the Section 2 exhibits] |
+| **Submitter / point of contact** | [Name, title, email] |
+
+*ENC items under License Exception ENC (b)(2)/(b)(3) **require** a CCATS; ENC (b)(1) items may file one to drop the annual self-classification report. File via SNAP-R at https://snapr.bis.doc.gov.*
 
 ***
 
