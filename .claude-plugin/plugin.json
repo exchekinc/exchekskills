@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
   "displayName": "ExChek Export Compliance",
-  "version": "3.4.3",
+  "version": "3.4.4",
   "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
@@ -60,7 +60,7 @@
     "regulatory_source": {
       "type": "string",
       "title": "Regulatory data source",
-      "description": "Where skills pull live CFR text. 'ask' (default) = a one-time gate lets you choose per session; 'api' = ExChek API MCP (api.exchek.us, Cloudflare edge cache — fastest, no local Node/ecfr.gov dependency); 'local' = local MCP, direct from www.ecfr.gov and cached on your machine. Only CFR part numbers and search terms ever transit the API — never your item descriptions, party names, or compliance results. Screening, sanitization, audit logging, and report generation always stay local regardless of this setting.",
+      "description": "Where skills pull live CFR text. 'ask' (default) = a one-time gate lets you choose per session; 'api' = ExChek API MCP (api.exchek.us, Cloudflare edge cache — fastest, no local Node/ecfr.gov dependency); 'local' = local MCP, direct from www.ecfr.gov and cached on your machine. Only CFR part numbers and search terms ever transit the API — never your item descriptions, party names, or compliance results. Screening, sanitization, audit logging, and report generation always stay local regardless of this setting. In Claude Cowork (browser), the local Node MCP can't spawn — choose 'api'; the local-only tools (CSL screening, audit log, Word .docx export) require Claude Code or a desktop runtime.",
       "default": "ask"
     },
     "trade_gov_api_key": {

@@ -40,7 +40,7 @@ import { validateDisclosure } from "./lib/disclosure.mjs";
 import { convert as docxConvert } from "./lib/docx.mjs";
 import { resolveRegulatorySource } from "./lib/datasource.mjs";
 
-const VERSION = "3.4.3";
+const VERSION = "3.4.4";
 
 const TOOLS = [
   {

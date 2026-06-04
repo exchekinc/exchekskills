@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "diff -q \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" >/dev/null 2>&1 || (mkdir -p \"${CLAUDE_PLUGIN_DATA}\" && cp \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" && cp \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json.installing\" && (cd \"${CLAUDE_PLUGIN_DATA}\" && npm install --omit=dev --no-audit --no-fund --prefer-offline) && rm -f \"${CLAUDE_PLUGIN_DATA}/package.json.installing\") || rm -f \"${CLAUDE_PLUGIN_DATA}/package.json\""
+            "command": "command -v npm >/dev/null 2>&1 && [ -n \"${CLAUDE_PLUGIN_DATA}\" ] || exit 0; diff -q \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" >/dev/null 2>&1 || (mkdir -p \"${CLAUDE_PLUGIN_DATA}\" && cp \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json\" && cp \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/package.json\" \"${CLAUDE_PLUGIN_DATA}/package.json.installing\" && (cd \"${CLAUDE_PLUGIN_DATA}\" && npm install --omit=dev --no-audit --no-fund --prefer-offline) && rm -f \"${CLAUDE_PLUGIN_DATA}/package.json.installing\") || rm -f \"${CLAUDE_PLUGIN_DATA}/package.json\"; true"
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "test -f \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\" || (mkdir -p \"${CLAUDE_PLUGIN_DATA}\" && touch \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\" && chmod 600 \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\")"
+            "command": "[ -n \"${CLAUDE_PLUGIN_DATA}\" ] || exit 0; test -f \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\" || (mkdir -p \"${CLAUDE_PLUGIN_DATA}\" && touch \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\" && chmod 600 \"${CLAUDE_PLUGIN_DATA}/audit.jsonl\") || true"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CLAUDE_PLUGIN_DATA=\"${CLAUDE_PLUGIN_DATA}\" CLAUDE_PLUGIN_OPTION_AUDIT_KEY=\"${user_config.audit_key}\" node \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/lib/audit.mjs\" seal >/dev/null 2>&1 || true"
+            "command": "command -v node >/dev/null 2>&1 || exit 0; CLAUDE_PLUGIN_DATA=\"${CLAUDE_PLUGIN_DATA}\" CLAUDE_PLUGIN_OPTION_AUDIT_KEY=\"${user_config.audit_key}\" node \"${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/lib/audit.mjs\" seal >/dev/null 2>&1 || true"
           }
         ]
       }
