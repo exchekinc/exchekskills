@@ -237,3 +237,4 @@ Both files are delivered; the temporary `.md` is still deleted.
 - Consumers MUST NOT treat the JSON as legal advice; it is a structured view of an AI-assisted analysis.
 - Consumers SHOULD check `hitl_confirmation.confirmed === true` before automated downstream actions.
 - Consumers SHOULD check `privacy_attestation.minimum_met === true` before storing the report in a system of record.
+- Consumers expect all tables to display properly. There is a known issue that first drafts do not display tables correctly. Please ensure this is solved first time, everytime. 
