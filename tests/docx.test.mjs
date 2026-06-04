@@ -94,6 +94,20 @@ test("converter renders a valid (non-corrupt) .docx + .json, no fallback", { ski
     assert.match(xml, /w:type="dxa"/, "table width uses DXA (the v3.2.0 full-width fix)");
     assert.ok(xml.includes("9360"), "table is full usable width (9360 twips)");
     assert.doesNotMatch(xml, /\uD83D|\uD83E/, "no surrogate halves (emoji was stripped pre-render)");
+
+    // v3.5.0 delivery gate: tables must carry EXPLICIT, VISIBLE borders — not docx-js
+    // defaults. This is the recurring "the tables aren't visible" customer issue.
+    const tbl = xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/)[0];
+    const tblBordersBlock = tbl.match(/<w:tblBorders>[\s\S]*?<\/w:tblBorders>/);
+    assert.ok(tblBordersBlock, "table has an explicit <w:tblBorders> block");
+    const borderVals = [...tblBordersBlock[0].matchAll(/w:val="(\w+)"/g)].map((m) => m[1]);
+    assert.ok(borderVals.length >= 4, "all four table sides have a border");
+    assert.ok(borderVals.every((v) => v !== "nil" && v !== "none"), "no border is nil/none (i.e. visible)");
+    assert.match(tbl, /<w:tcBorders>/, "cells carry explicit borders too");
+    assert.match(xml, /<w:shd[^>]*w:fill="D9D9D9"/, "header row is shaded D9D9D9");
+    assert.match(xml, /<w:tcMar>/, "cells have explicit margins");
+    assert.match(xml, /<w:pgSz w:w="12240" w:h="15840"/, "US Letter page size (12240x15840 twips)");
+    assert.match(xml, /<w:pgMar [^>]*w:top="1440"/, "1-inch page margins");
   } catch {
     /* jszip not resolvable from here — PK-magic + file checks above still gate corruption */
   }
