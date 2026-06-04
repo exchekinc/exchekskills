@@ -29,7 +29,9 @@ This is the important part for compliance and privacy:
 - **Screening, sanitization, the CUI/classified gate, audit logging, disclosure validation, and report
   generation always run on the local `exchek` server**, regardless of which data source you pick. They
   never go remote. Party screening still calls `data.trade.gov` directly (live, only when you screen).
-- ExChek emits **zero telemetry** either way. See [TELEMETRY.md](TELEMETRY.md).
+- The **plugin** emits **zero telemetry** either way. If you use the hosted ExChek API MCP, that
+  service keeps minimal anonymous operational logs — the tool invoked plus the CFR part, never the
+  search term or any of your data. See [TELEMETRY.md](TELEMETRY.md).
 
 So the full outbound picture is:
 
@@ -38,6 +40,10 @@ So the full outbound picture is:
 | `www.ecfr.gov` | Local MCP pulls CFR text (primary) | The part number you're reading. No PII. |
 | `api.exchek.us` | You select the ExChek API MCP, **or** the local MCP's auto-fallback fires | CFR part numbers + search terms only. No PII. |
 | `data.trade.gov` | You screen a party (CSL), any source | The party name/terms you screen. Required to screen. |
+
+> The search term is *sent* to `api.exchek.us` to execute the search, but its operational logs record
+> only the **tool name and CFR part** — never the search term, item context, or any of your data. To
+> avoid even that, pin the **Local MCP** (`regulatory_source: local`).
 
 ## Choosing a source
 

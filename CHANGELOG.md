@@ -2,6 +2,19 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [Unreleased]
+
+### Changed
+
+- **Docs accuracy — hosted-API operational logging disclosed.** `TELEMETRY.md` and `DATA_SOURCES.md`
+  previously implied the hosted `api.exchek.us` endpoint kept no records ("still emitting no telemetry",
+  "zero telemetry either way"). The **plugin** still emits zero telemetry and that is unchanged — but
+  the hosted API (an opt-in data source) keeps minimal, anonymous operational logs like any web service:
+  the tool/endpoint invoked, the CFR part requested, and per-session request counts. The docs now state
+  this precisely and confirm what is **never** logged (search terms, skill arguments, item context,
+  party names, results, PII), plus how to avoid it entirely (`regulatory_source: local`). No code change;
+  aligns the disclosure with the hosted API's logging (exchekinc/Exchekwebsitecloudflare#24).
+
 ## [3.4.4] — 2026-06-04
 
 **Claude Cowork compatibility.** The plugin advertises "Works in Cowork," but two things assumed a local shell/Node runtime that Cowork (browser) doesn't have. This release makes the plugin degrade gracefully in Cowork instead of erroring, and documents the in-browser data path. No change to Claude Code behavior.
