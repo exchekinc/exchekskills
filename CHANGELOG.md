@@ -2,6 +2,20 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.4.3] — 2026-06-04
+
+**Marketplace listability fix.** The plugin failed `claude plugin validate` and the marketplace file was missing required fields — so the directory listing and the `/plugin marketplace add` path were both broken. This release makes the plugin pass validation cleanly and the marketplace render correctly. No skill or MCP behavior changes.
+
+### Fixed
+
+- **`claude plugin validate` now passes.** `.claude-plugin/plugin.json` declared `"agents": "./agents/"` — but the `agents` manifest field expects file path(s), not a directory, so the manifest hard-errored with `agents: Invalid input` and the whole plugin failed validation (the review pipeline runs this same check). Removed the redundant `skills`, `agents`, and `hooks` path fields entirely: all three named **default locations** (`skills/`, `agents/`, `hooks/hooks.json`) that Claude Code auto-discovers, so declaring them added nothing — and per the schema, an explicit `skills: "./skills/"` actually caused the default `skills/` directory to be **scanned twice**. Components are unchanged; they're now found by auto-discovery. The inline `mcpServers` config stays (it is not a default-location file).
+- **`.claude-plugin/marketplace.json` was missing both required top-level fields** (`name` and `owner`) and the entry was missing `displayName`. A marketplace file without `name`/`owner` is invalid, which broke `/plugin marketplace add exchekinc/exchekskills`. Rebuilt the file with the required `name` (`exchek`) and `owner` block, and enriched the plugin entry with `displayName` ("ExChek Export Compliance"), `author`, `homepage`, `category`, and the customer-facing description.
+
+### Changed
+
+- **`displayName: "ExChek Export Compliance"`** added to `plugin.json` so the human-readable name (not the kebab-case `exchekskills`) shows in the `/plugin` picker and marketplace UI.
+- MCP server `VERSION` + `package.json` aligned to 3.4.3.
+
 ## [3.4.2] — 2026-06-02
 
 **Docx generator stabilization (Tier 1).** The report converter kept breaking — root-caused to a **docx version skew + a known corruption bug**, not an API change. Fixes the breakage and adds a never-fail fallback. (Tiers 2–3 — inverting to a schema-validated JSON source of truth and a frozen counsel-approved template — are planned separately.)
