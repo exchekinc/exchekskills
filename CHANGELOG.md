@@ -2,6 +2,27 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.4.4] — 2026-06-04
+
+**Claude Cowork compatibility.** The plugin advertises "Works in Cowork," but two things assumed a local shell/Node runtime that Cowork (browser) doesn't have. This release makes the plugin degrade gracefully in Cowork instead of erroring, and documents the in-browser data path. No change to Claude Code behavior.
+
+### Fixed
+
+- **Hooks no longer error or block in Cowork.** All three hooks ran local shell commands (`diff`/`cp`/`npm install`, `touch`/`chmod`, `node … seal`) that can't execute in Cowork's browser runtime. Each hook now guards on the tool it needs and exits 0 when it's absent:
+  - `SessionStart` (local-MCP dependency install) early-exits unless `npm` is on PATH and `CLAUDE_PLUGIN_DATA` is set, and always ends `; true` so a failed install can't block session start.
+  - `PreToolUse` (ensure the audit-log file exists) early-exits when `CLAUDE_PLUGIN_DATA` is unset and is `|| true`-guarded so it can never block `report_to_docx`/`csl_search`.
+  - `SessionEnd` (audit-chain seal) early-exits unless `node` is on PATH (it was already `|| true`).
+  - On Claude Code (npm/node present) behavior is unchanged; on Cowork the hooks no-op cleanly.
+
+### Changed
+
+- **`regulatory_source` userConfig now documents the Cowork path.** Description spells out that the local Node MCP can't spawn in browser Cowork, so users should choose `api` (the hosted `api.exchek.us` MCP — eCFR + skill data, no local dependency), and that the local-only tools (CSL screening, audit log, Word `.docx` export) require Claude Code or a desktop runtime. Both MCP servers (`exchek` stdio, `exchek-api` http) remain declared; the manifest has no per-platform gating field, so Cowork simply uses whichever server starts (the HTTP one).
+- MCP server `VERSION` + `package.json` aligned to 3.4.4.
+
+### Known limitation (not yet addressed)
+
+- `userConfig.default_report_dir` (`type: "directory"`) and the keychain-backed `sensitive` fields assume a local filesystem/OS keychain. Their Cowork behavior is a separate, larger change (Cowork-native storage) and is intentionally out of scope here.
+
 ## [3.4.3] — 2026-06-04
 
 **Marketplace listability fix.** The plugin failed `claude plugin validate` and the marketplace file was missing required fields — so the directory listing and the `/plugin marketplace add` path were both broken. This release makes the plugin pass validation cleanly and the marketplace render correctly. No skill or MCP behavior changes.
