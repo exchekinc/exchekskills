@@ -2,10 +2,26 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
-## [Unreleased]
+## [3.5.0] — 2026-06-04
+
+**Reports always render visible tables, and the classification memo is upgraded to best-in-class.** Fixes the recurring customer defect where report tables rendered without visible borders (in both Claude Code and Cowork), and strengthens the Classification Report to the standard a trade-compliance attorney would produce.
+
+### Fixed
+
+- **`.docx` tables now always render with visible borders.** Two root causes: (1) the converter relied on docx-js *default* borders, which render inconsistently; (2) in Cowork the converter never runs (no local node/MCP), so agents improvised and regressed to borderless defaults — notably python-docx's default `Table Normal` style, which has **no** borders. The converter now sets borders explicitly, and the docx skill now carries a mandatory spec for the Cowork path (below).
+
+### Added
+
+- **Converter (`report-to-docx.mjs`):** explicit `BorderStyle.SINGLE` on every table and cell, bold + `D9D9D9`-shaded header row (repeating across page breaks), explicit cell margins, and an explicit US-Letter section (12240×15840, 1″ margins) that guarantees the 9360-twip column math.
+- **`exchek-skill-docx` SKILL.md — mandatory "Table & layout requirements for a directly-built .docx"** for environments without the converter (Cowork/browser): visible borders, dual DXA widths summing to 9360, header shading, cell margins, US-Letter — plus an explicit callout of the python-docx `Table Normal`→`Table Grid` trap and a copy-paste **delivery-gate** check the agent runs before sending the file.
+- **Classification Report template + best-practices reference — best-in-class upgrades:** structured **§ 772.1 "specially designed" catch-and-release** (paragraph (a) catch → (b)(1)–(6) release, prong by prong) usable in Steps 4 and 5; a **determination-confidence** field (High/Med/Low) with a decision rule routing Medium/Low to a CCATS; a **controlling-parameter comparison** (quoted CCL threshold ↔ item spec ↔ meets?); an inline **CCL-version pin**; and **Appendix A — draft CCATS submission** (§ 748.3 SNAP-R Block 22(a)/24).
+- **Regression gate:** `tests/docx.test.mjs` now asserts explicit non-nil `<w:tblBorders>` on all sides, cell borders, `D9D9D9` header shading, cell margins, and US-Letter page size, so visible tables can't silently regress again. JSON sibling schema gains `confidence`, `ccats_recommended`, and `specially_designed`.
 
 ### Changed
 
+- **`report-to-docx.mjs` no longer trusts docx-js default table borders** — all styling is explicit (see Added). The HTML fallback is unchanged.
+- **Section 9 data-source line corrected** in the classification template: the *local* server is `ecfr.gov`-primary with `api.exchek.us` fallback (the prior text had it backwards); the *hosted* API MCP uses `api.exchek.us`.
+- MCP server `VERSION` + `package.json` aligned to 3.5.0. `claude plugin validate --strict` passes; 30/30 tests pass.
 - **Docs accuracy — hosted-API operational logging disclosed.** `TELEMETRY.md` and `DATA_SOURCES.md`
   previously implied the hosted `api.exchek.us` endpoint kept no records ("still emitting no telemetry",
   "zero telemetry either way"). The **plugin** still emits zero telemetry and that is unchanged — but

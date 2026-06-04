@@ -90,9 +90,14 @@ Each skill defines what goes in `determinations[]`. Examples:
   "usml_category": null,
   "reasons_for_control": ["AT"],
   "order_of_review_result": "Supplement No. 4 Step 3",
+  "specially_designed": null,
+  "confidence": "high",
+  "ccats_recommended": false,
   "approved_by_user_at": "2026-04-22T14:06:58Z"
 }
 ```
+
+`confidence` is one of `"high" | "medium" | "low"`. When it is `"medium"` or `"low"`, set `ccats_recommended: true` (matches the Section 8 decision rule in the Classification Report). `specially_designed` is `true` / `false` when a controlling ECCN uses the term (the result of the § 772.1 catch-and-release), else `null`.
 
 ### `exchek-license`
 
