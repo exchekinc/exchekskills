@@ -2,6 +2,15 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.5.4] — 2026-06-11
+
+**The dashboard fills itself.** `exchek-classify` can now mirror compliance-pipeline *status* to the app.exchek.us Transactions page as it works — opt-in, metadata-only, and silent for free users.
+
+- New plugin setting `transaction_sync` (`ask` default / `on` / `off`). Three gates before any event is recorded: the Step 0 CUI gate (absolute — flagged engagements never sync and are never even asked), an authenticated ExChek connection, and user consent folded into the step 1 question set.
+- New reference [transaction-sync.md](skills/exchek-skill-classify/references/transaction-sync.md): the complete allowed-fields list, label discipline (category words only — with right/wrong examples), the milestone→event map (jurisdiction, classify, screen, memo render), fire-and-forget failure handling, and the user's revocation controls.
+- Events recorded: jurisdiction (EAR/ITAR) at confirmation, classify (final ECCN) at approval, screen (list name or hit class — never the party) when screening runs or `pending` when deferred, and a `note` with the DOC number after an Enterprise render.
+- Orchestrator passes its `tx_XXX` id through so dashboard transactions line up with the local audit log; license/export-docs stages stay with their own skills.
+
 ## [3.5.3] — 2026-06-11
 
 **Sign in instead of pasting keys.** The ExChek API now has an OAuth-authenticated MCP endpoint (`https://api.exchek.us/mcp/pro`) backed by the new account portal at **app.exchek.us** (credits, top-ups, key rotation, connected apps, render history).

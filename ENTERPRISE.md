@@ -33,6 +33,7 @@ enterprise compliance program (or a regulator) expects to see.
 | **MCP (key header)** | `https://api.exchek.us/mcp` with the key as the connection's Authorization header, or the plugin's `enterprise_api_key` setting (Claude Code, Cursor) |
 | **Contract** | `GET https://api.exchek.us/pdf/classification/contract` — requires your key (the variable schema is part of the paid product); documents every field. Fetching it never consumes a credit |
 | **In-skill** | `exchek-classify` offers this as **Option 2** at report time; the free local Word report remains Option 1 and the default |
+| **Dashboard sync** | opt-in: `exchek-classify` can mirror pipeline *status* (stage/status/ECCN refs only — never item details) to your Transactions page via `record_compliance_event`; the dashboard reminds you to re-screen (90 days) and re-verify classifications (30 days) |
 
 Only **successful** renders consume a credit. Failed validation (HTTP 400) and
 service errors are never charged. When credits run out, renders return HTTP
