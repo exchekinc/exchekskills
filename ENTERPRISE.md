@@ -30,7 +30,7 @@ enterprise compliance program (or a regulator) expects to see.
 | **API key** | `exk_live_…`, shown exactly once on the confirmation page after payment |
 | **REST** | `POST https://api.exchek.us/pdf/classification` with `Authorization: Bearer <key>` |
 | **MCP** | `create_classification_pdf` tool at `https://api.exchek.us/mcp` (send the key as the connection's Authorization header, or set the plugin's `enterprise_api_key` setting) |
-| **Contract** | `GET https://api.exchek.us/pdf/classification/contract` — free, no auth; documents every variable |
+| **Contract** | `GET https://api.exchek.us/pdf/classification/contract` — requires your key (the variable schema is part of the paid product); documents every field. Fetching it never consumes a credit |
 | **In-skill** | `exchek-classify` offers this as **Option 2** at report time; the free local Word report remains Option 1 and the default |
 
 Only **successful** renders consume a credit. Failed validation (HTTP 400) and
