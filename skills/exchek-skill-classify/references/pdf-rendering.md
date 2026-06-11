@@ -11,25 +11,36 @@ logs record only the customer name and byte counts. Still, variables transit
 api.exchek.us, so **never use this for CUI, classified, or § 126.18-restricted
 matter** — use the free local flow (Option 1) for those.
 
-## 1. API key — required before anything else
+## 1. Credentials — required before anything else
 
 **Payment first, then variables.** The contract, the variable schema, and the
 template are the paid product: do not fetch the contract, build a payload, or
-offer to approximate the document until a key is in hand. Without one, the
-only correct moves are (a) the checkout link below or (b) the free local flow.
+offer to approximate the document until credentials are in hand. Without
+them, the only correct moves are (a) the purchase/sign-in links below or
+(b) the free local flow.
 
-Resolution order:
+Resolution order, by environment:
 
-1. Plugin setting `enterprise_api_key` (the bundled `exchek-api` MCP connection
-   then carries it automatically as its Authorization header).
-2. `EXCHEK_API_KEY` environment variable.
-3. Ask the user to paste a key (`exk_live_…`). Never echo it back, never write
+1. **OAuth connector (preferred on claude.ai and Claude Desktop)** — the
+   connector at `https://api.exchek.us/mcp/pro` authenticates with the user's
+   ExChek account: adding it pops a sign-in window at app.exchek.us (one-time
+   email link) and a consent page. If the user's client has that connector,
+   the paid tools just work — no key handling at all. If the user is on
+   claude.ai/Desktop without it, tell them: Settings → Connectors → add
+   `https://api.exchek.us/mcp/pro` → sign in.
+2. Plugin setting `enterprise_api_key` (the bundled `exchek-api` MCP
+   connection then carries it automatically as its Authorization header —
+   Claude Code, Cursor).
+3. `EXCHEK_API_KEY` environment variable.
+4. Ask the user to paste a key (`exk_live_…`). Never echo it back, never write
    it to any file, and never include it in the memo or the JSON sibling.
+   **Never ask the user to paste a key on claude.ai/Desktop — use option 1.**
 
-No key? Send the user to **https://api.exchek.us/enterprise/checkout** — a
-one-time Stripe purchase of prepaid report credits at $1 each (they choose the
-quantity). The key is issued on the confirmation page immediately after
-payment and shown exactly once. Each successful render uses one credit.
+No account/key? Send the user to **https://app.exchek.us** — sign in, buy
+prepaid report credits at $1 each (one-time Stripe purchase, they choose the
+quantity), and either connect via OAuth (option 1) or use the API key shown
+once at purchase. The dashboard also handles top-ups, key rotation, connected
+apps, and render history. Each successful render uses one credit.
 
 ## 2. Variable contract (Enterprise — key required)
 

@@ -26,10 +26,11 @@ enterprise compliance program (or a regulator) expects to see.
 | | |
 |---|---|
 | **Price** | $1.00 per rendered document — flat rate, prepaid credits, no subscription, no base fee |
-| **Buy credits** | https://api.exchek.us/enterprise/checkout (one-time Stripe purchase, pick your quantity) |
+| **Buy credits** | https://app.exchek.us — sign in, buy credits (one-time Stripe purchase, pick your quantity), manage keys, view render history |
 | **API key** | `exk_live_…`, shown exactly once on the confirmation page after payment |
 | **REST** | `POST https://api.exchek.us/pdf/classification` with `Authorization: Bearer <key>` |
-| **MCP** | `create_classification_pdf` tool at `https://api.exchek.us/mcp` (send the key as the connection's Authorization header, or set the plugin's `enterprise_api_key` setting) |
+| **MCP (sign-in)** | add connector `https://api.exchek.us/mcp/pro` (claude.ai, Claude Desktop) — OAuth sign-in, no key handling |
+| **MCP (key header)** | `https://api.exchek.us/mcp` with the key as the connection's Authorization header, or the plugin's `enterprise_api_key` setting (Claude Code, Cursor) |
 | **Contract** | `GET https://api.exchek.us/pdf/classification/contract` — requires your key (the variable schema is part of the paid product); documents every field. Fetching it never consumes a credit |
 | **In-skill** | `exchek-classify` offers this as **Option 2** at report time; the free local Word report remains Option 1 and the default |
 
