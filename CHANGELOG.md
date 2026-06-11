@@ -2,6 +2,13 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.5.2] — 2026-06-11
+
+**Paid option surfaced at startup; payment-first enforcement.** Feedback from first live run of 3.5.1:
+
+- `exchek-classify` step 1 now asks the deliverable question up front (free Word report vs. official ExChek PDF at \$1/report) alongside the folder/format questions, including how to buy credits — instead of springing it at report time. Step 6 executes the stored choice.
+- **Payment first, then variables**: the skill must verify the Enterprise key *before* fetching the contract or building a payload, and must never offer to approximate the paid document without one. Matches the API change that gates `GET /pdf/classification/contract` and `get_classification_pdf_contract` behind the key (402 + purchase link otherwise; contract fetches never consume credits).
+
 ## [3.5.1] — 2026-06-10
 
 **Official PDF memorandum (Option 2, ExChek Enterprise).** Classification now offers two deliverables at report time: the existing free local Word document (Option 1, default — unchanged, fully offline), or the official branded 21-page ExChek classification-memorandum PDF rendered by the ExChek API at a flat **$1 per report** (Option 2, prepaid credits, no subscription).

@@ -11,7 +11,12 @@ logs record only the customer name and byte counts. Still, variables transit
 api.exchek.us, so **never use this for CUI, classified, or § 126.18-restricted
 matter** — use the free local flow (Option 1) for those.
 
-## 1. API key
+## 1. API key — required before anything else
+
+**Payment first, then variables.** The contract, the variable schema, and the
+template are the paid product: do not fetch the contract, build a payload, or
+offer to approximate the document until a key is in hand. Without one, the
+only correct moves are (a) the checkout link below or (b) the free local flow.
 
 Resolution order:
 
@@ -26,12 +31,19 @@ one-time Stripe purchase of prepaid report credits at $1 each (they choose the
 quantity). The key is issued on the confirmation page immediately after
 payment and shown exactly once. Each successful render uses one credit.
 
-## 2. Variable contract
+## 2. Variable contract (Enterprise — key required)
 
 Fetch the contract at render time — do not rely on a memorized field list:
 
-- MCP (free, no auth): `mcp__exchek-api__get_classification_pdf_contract`
-- REST (free, no auth): `GET https://api.exchek.us/pdf/classification/contract`
+- MCP: `mcp__exchek-api__get_classification_pdf_contract` (the connection must
+  carry the `Authorization: Bearer <key>` header — automatic when
+  `enterprise_api_key` is set in plugin settings)
+- REST: `GET https://api.exchek.us/pdf/classification/contract` with
+  `Authorization: Bearer <key>`
+
+Both return **402 with a purchase link** when the key is missing, invalid, or
+out of credits. Fetching the contract does not consume a credit — only
+successful renders do.
 
 The contract documents every variable: name, type (string / array / enum /
 boolean section flag), whether it is required, and allowed enum values.
@@ -92,7 +104,7 @@ key inline.
 
 | Status | Meaning | What to do |
 |---|---|---|
-| `402` | No key, unrecognized key, or **credits exhausted** | Relay the `purchase` link from the response body (https://api.exchek.us/enterprise/checkout) |
+| `402` | No key, unrecognized key, or **credits exhausted** (contract or render) | Relay the `purchase` link from the response body (https://api.exchek.us/enterprise/checkout); offer the free local flow as the fallback |
 | `403` | Key suspended | Tell the user to contact matt@exchek.us |
 | `400` | Missing/invalid variables | The response lists the exact fields — fix the payload and retry (failed renders are not charged) |
 | `413` | Payload over 1 MB | Trim oversized free-text fields |
