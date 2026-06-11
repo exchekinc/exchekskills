@@ -2,7 +2,7 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
-## [3.6.0] — 2026-06-10
+## [3.5.1] — 2026-06-10
 
 **Official PDF memorandum (Option 2, ExChek Enterprise).** Classification now offers two deliverables at report time: the existing free local Word document (Option 1, default — unchanged, fully offline), or the official branded 21-page ExChek classification-memorandum PDF rendered by the ExChek API at a flat **$1 per report** (Option 2, prepaid credits, no subscription).
 
