@@ -24,8 +24,11 @@ This is the important part for compliance and privacy:
 - **Only CFR part numbers and search terms** ever go to the ExChek API MCP — e.g. "part 774",
   "search 742 for *encryption*". That is public reference data, identical for every user.
 - **Never** does your item description, party name, spec-sheet content, ECCN determination, screening
-  result, or any report leave your machine to ExChek. There is no item context and no PII in a
-  regulatory lookup.
+  result, or any report leave your machine to ExChek **by default**. There is no item context and no
+  PII in a regulatory lookup. Two Enterprise features are explicit, individually consented exceptions:
+  official PDF rendering (your memo variables transit for stateless rendering) and dashboard
+  transaction sync (stage/status/short refs like "classify ✓ EAR99" — never item details or party
+  names; governed by the `transaction_sync` setting and skipped entirely for CUI-gated engagements).
 - **Screening, sanitization, the CUI/classified gate, audit logging, disclosure validation, and report
   generation always run on the local `exchek` server**, regardless of which data source you pick. They
   never go remote. Party screening still calls `data.trade.gov` directly (live, only when you screen).
@@ -39,6 +42,7 @@ So the full outbound picture is:
 |---|---|---|
 | `www.ecfr.gov` | Local MCP pulls CFR text (primary) | The part number you're reading. No PII. |
 | `api.exchek.us` | You select the ExChek API MCP, **or** the local MCP's auto-fallback fires | CFR part numbers + search terms only. No PII. |
+| `api.exchek.us` (Enterprise, opt-in) | You render an official PDF, or approve dashboard transaction sync | Memo variables (rendered statelessly, discarded) / pipeline stage + status + short refs. Both individually consented; never CUI. |
 | `data.trade.gov` | You screen a party (CSL), any source | The party name/terms you screen. Required to screen. |
 
 > The search term is *sent* to `api.exchek.us` to execute the search, but its operational logs record

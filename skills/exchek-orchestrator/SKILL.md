@@ -16,7 +16,7 @@ Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended
   - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
   - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
 
-  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results. by default.** The exceptions are opt-in Enterprise features handled by the sub-skills with their own consent gates: PDF rendering and dashboard transaction sync (see exchek-skill-classify's references). If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
 
 ### Regulatory-data tools — use the column for the chosen source
 
@@ -115,7 +115,7 @@ The orchestrator tracks transactions in `.exchek/state/transactions.jsonl`. Each
 When the orchestrator routes to a sub-skill, it:
 
 1. Generates a new transaction ID (or identifies the existing one by matching item/party).
-2. Passes the transaction ID to the sub-skill context. Output decisions belong to the sub-skill — e.g. exchek-skill-classify asks its own free-.docx vs. official-PDF ($1, ExChek Enterprise) question at report time; do not pre-empt or answer it here.
+2. Passes the transaction ID to the sub-skill context. Output decisions belong to the sub-skill — e.g. exchek-skill-classify asks its own free-.docx vs. official-PDF ($1, ExChek Enterprise) question at report time; do not pre-empt or answer it here. The same applies to **cloud dashboard sync**: sub-skills own their `record_compliance_event` calls (gated by the user's `transaction_sync` setting and the CUI gate); pass them the `tx_XXX` id so dashboard transactions line up with the local log, and never record duplicate events from the orchestrator.
 3. After the sub-skill completes, appends the event line to `.exchek/state/transactions.jsonl`.
 4. Evaluates the transaction status: if all required steps (classify, screen, license) are done, mark `incomplete`; if export_docs is also done, mark `complete`.
 
