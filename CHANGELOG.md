@@ -2,6 +2,14 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.6.0] — 2026-06-10
+
+**Official PDF memorandum (Option 2, ExChek Enterprise).** Classification now offers two deliverables at report time: the existing free local Word document (Option 1, default — unchanged, fully offline), or the official branded 21-page ExChek classification-memorandum PDF rendered by the ExChek API at a flat **$1 per report** (Option 2, prepaid credits, no subscription).
+
+- `exchek-classify`: Flow step 6 asks the one-question deliverable choice; new **Official PDF memorandum** section and [references/pdf-rendering.md](skills/exchek-skill-classify/references/pdf-rendering.md) cover key setup, the variable contract (`GET https://api.exchek.us/pdf/classification/contract` / `get_classification_pdf_contract`), REST and MCP render calls, and error handling. Rendering is stateless (render-and-discard); the CUI/Classified gate explicitly excludes Option 2 — air-gapped memos stay on Option 1.
+- Plugin: new optional `enterprise_api_key` setting; when set, the bundled `exchek-api` MCP connection sends it as the Authorization header so `create_classification_pdf` works without any per-call key handling. Keys come from https://api.exchek.us/enterprise/checkout.
+- `exchek-orchestrator`: routing note — the deliverable question belongs to the classify skill; the hub must not pre-empt it.
+
 ## [3.5.0] — 2026-06-04
 
 **Reports always render visible tables, and the classification memo is upgraded to best-in-class.** Fixes the recurring customer defect where report tables rendered without visible borders (in both Claude Code and Cowork), and strengthens the Classification Report to the standard a trade-compliance attorney would produce.

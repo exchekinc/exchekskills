@@ -115,7 +115,7 @@ The orchestrator tracks transactions in `.exchek/state/transactions.jsonl`. Each
 When the orchestrator routes to a sub-skill, it:
 
 1. Generates a new transaction ID (or identifies the existing one by matching item/party).
-2. Passes the transaction ID to the sub-skill context.
+2. Passes the transaction ID to the sub-skill context. Output decisions belong to the sub-skill — e.g. exchek-skill-classify asks its own free-.docx vs. official-PDF ($1, ExChek Enterprise) question at report time; do not pre-empt or answer it here.
 3. After the sub-skill completes, appends the event line to `.exchek/state/transactions.jsonl`.
 4. Evaluates the transaction status: if all required steps (classify, screen, license) are done, mark `incomplete`; if export_docs is also done, mark `complete`.
 
