@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
   "displayName": "ExChek Export Compliance",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
@@ -36,7 +36,9 @@
   "mcpServers": {
     "exchek": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/index.mjs"],
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/servers/exchek-mcp/index.mjs"
+      ],
       "env": {
         "NODE_PATH": "${CLAUDE_PLUGIN_DATA}/node_modules",
         "CLAUDE_PLUGIN_OPTION_TRADE_GOV_API_KEY": "${user_config.trade_gov_api_key}",
@@ -47,7 +49,10 @@
     },
     "exchek-api": {
       "type": "http",
-      "url": "https://api.exchek.us/mcp"
+      "url": "https://api.exchek.us/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.enterprise_api_key}"
+      }
     }
   },
   "userConfig": {
@@ -80,6 +85,12 @@
       "title": "Default report folder",
       "description": "Where finished .docx reports land. Defaults to ~/Documents/ExChek-Reports. You can always override per-report.",
       "default": "~/Documents/ExChek-Reports"
+    },
+    "enterprise_api_key": {
+      "type": "string",
+      "title": "ExChek Enterprise API key (optional)",
+      "description": "Unlocks the official branded classification-memorandum PDF ($1 per report, prepaid credits). Buy credits at https://api.exchek.us/enterprise/checkout — the key (exk_live_…) is shown once after payment. Leave empty to use only the free features; analysis, regulatory data, and the free Word report never require a key.",
+      "default": ""
     }
   }
 }
