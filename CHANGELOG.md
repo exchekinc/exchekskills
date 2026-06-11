@@ -2,6 +2,14 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.5.3] — 2026-06-11
+
+**Sign in instead of pasting keys.** The ExChek API now has an OAuth-authenticated MCP endpoint (`https://api.exchek.us/mcp/pro`) backed by the new account portal at **app.exchek.us** (credits, top-ups, key rotation, connected apps, render history).
+
+- `exchek-classify` credential resolution now prefers the OAuth connector on claude.ai/Claude Desktop (add `/mcp/pro` → sign-in window → consent — no key handling), then the `enterprise_api_key` plugin setting, then `EXCHEK_API_KEY`, then a pasted key (never on claude.ai/Desktop).
+- Purchase/management links point at https://app.exchek.us instead of the bare checkout URL.
+- ENTERPRISE.md documents both MCP auth modes.
+
 ## [3.5.2] — 2026-06-11
 
 **Paid option surfaced at startup; payment-first enforcement.** Feedback from first live run of 3.5.1:
