@@ -85,41 +85,76 @@ risk-critical`; `flag-yes | flag-no | flag-unknown | flag-na`) — copy them
 exactly as the contract lists them. Use `"Not provided"` / `"None specified"`
 only where no data exists — same rule as the free template.
 
-## 3. Render
+## 3. Render — ALWAYS draft first, finalize only on explicit approval
 
-**MCP** (preferred when the `exchek-api` connection has the Authorization
-header configured — it does automatically when `enterprise_api_key` is set in
-plugin settings):
+The render tool has two modes, and the order is not optional:
 
-- Tool: `mcp__exchek-api__create_classification_pdf`
-- Argument: `variables` = the full payload object
-- Returns a text summary plus the PDF as a base64 `application/pdf` embedded
-  resource — decode and save it.
+1. **Draft preview (free).** Call `mcp__exchek-api__create_classification_pdf`
+   with `variables` = the full payload AND `draft: true` (REST:
+   `POST /pdf/classification?draft=1`). Drafts are watermarked "DRAFT — NOT
+   FINAL" on every page, consume **no credit**, and are never stored. Deliver
+   the draft to the user (see **Delivery** below) and walk them through a
+   review checklist before anything is charged:
+   - document-control block — company name, CAGE code attribution, preparer,
+     addressee, dates
+   - the item line and the final ECCN/jurisdiction
+   - exhibits — is the governing drawing/spec carried as a populated exhibit?
+   - parties and screening rows
+   - any render warnings from the response
+2. **Edit loop.** Apply the user's corrections to the payload and re-render
+   drafts as many times as needed — they're free. Do not nickel-and-dime the
+   review: ask for all corrections, fix, show one corrected draft.
+3. **Finalize (1 credit).** Only after the user explicitly approves — ask
+   exactly: "Finalize the memorandum? This renders the clean official PDF and
+   uses 1 credit ($1)." — call the tool again WITHOUT `draft`. Never render a
+   final the user hasn't seen a draft of, and never re-render a final for an
+   error you could have caught at draft (that's a second charge the draft
+   step exists to prevent).
 
-**REST** (any environment, or when the user pasted a key in chat):
+**Delivery.** Every render response (draft and final) includes a one-hour
+download link (`https://api.exchek.us/pdf/dl/<token>`) in the summary text,
+alongside the PDF bytes as a base64 `application/pdf` resource:
+
+- **File-writing surfaces (Claude Code, Cowork, Desktop, Cursor):** decode the
+  resource and save it — finals as
+  `ExChek-Memorandum-YYYY-MM-DD-ShortItemName.pdf` in the report folder,
+  drafts with a `-DRAFT` suffix. Delete draft files after finalization.
+- **claude.ai web chat:** the chat surface **cannot accept the PDF resource** —
+  do not try to attach it; give the user the download link instead and say it
+  expires in one hour. Final memoranda are additionally retained in their
+  dashboard vault (app.exchek.us → Documents) when document storage is on —
+  mention that as the durable copy.
+
+**REST equivalent** (any environment, or when the user runs it themselves):
 
 ```bash
+# draft preview — free, watermarked
+curl -X POST "https://api.exchek.us/pdf/classification?draft=1" \
+  -H "Authorization: Bearer $EXCHEK_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @memo-variables.json -o memorandum-DRAFT.pdf
+
+# final — after explicit approval; consumes 1 credit
 curl -X POST https://api.exchek.us/pdf/classification \
   -H "Authorization: Bearer $EXCHEK_API_KEY" \
   -H "Content-Type: application/json" \
   -d @memo-variables.json -o memorandum.pdf
 ```
 
-Save as `ExChek-Memorandum-YYYY-MM-DD-ShortItemName.pdf` in the user's report
-folder. Delete any temporary variables file afterward. If you cannot write
-files (Claude web), give the user the filled payload and the exact curl
-command to run themselves — with a placeholder where their key goes, never the
-key inline.
+Delete any temporary variables file afterward. If you cannot write files,
+give the user the filled payload and the exact curl commands with a
+placeholder where their key goes — never the key inline.
 
 ## 4. Errors
 
 | Status | Meaning | What to do |
 |---|---|---|
-| `402` | No key, unrecognized key, or **credits exhausted** (contract or render) | Relay the `purchase` link from the response body (https://api.exchek.us/enterprise/checkout); offer the free local flow as the fallback |
+| `402` | No key, unrecognized key, or **credits exhausted** (contract or render) | Relay the `purchase` link from the response body (https://app.exchek.us); offer the free local flow as the fallback |
 | `403` | Key suspended | Tell the user to contact matt@exchek.us |
 | `400` | Missing/invalid variables | The response lists the exact fields — fix the payload and retry (failed renders are not charged) |
 | `413` | Payload over 1 MB | Trim oversized free-text fields |
 | `5xx` | Render service hiccup | Retry once; if it persists, fall back to the free flow and report the error |
 
 A successful render returns the PDF directly (REST) or as an embedded
-resource (MCP); only successful renders consume a credit.
+resource plus a one-hour download link (MCP); only successful **final**
+renders consume a credit — drafts are always free.
