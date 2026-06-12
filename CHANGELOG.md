@@ -2,6 +2,26 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.6.0] — 2026-06-12
+
+**One engine, two editions — and the dashboard talks back.** Donations are gone; ExChek now has a clean free/Enterprise split that every skill respects, and the skills plug into the full app.exchek.us workspace: products registry, continuous screening, regulatory radar, and pinned team notes.
+
+### Added
+- **Edition choice** — new `edition` plugin setting (`ask`/`free`/`enterprise`) plus a setup step that lays out the value of each and records the answer in `.exchek/config.json`. Free means free: no Enterprise asks mid-flow, at most a single one-line wrap-up mention (which the user can switch off). Enterprise means the official PDF and dashboard sync are offered by default.
+- **Products registry integration** — `exchek-classify` checks `get_prior_classification` before collecting specs ("you classified this as 6A003 on May 2 — reuse or re-verify?") and saves confirmed determinations with `record_product_classification` (upsert by generic label; covered by the same consent and label discipline as transaction sync — see the expanded [transaction-sync reference](skills/exchek-skill-classify/references/transaction-sync.md)).
+- **Continuous monitoring from screening** — after a CSL screen, `exchek-csl` (with credentials and explicit consent — registering a party stores its name, and the skill says so) offers `record_screening`: the party joins the Screening Center for weekly/daily re-screens with email alerts. `get_party_status` runs first, so already-monitored parties are recognized instead of re-registered.
+- **Regulatory radar** — the free, no-auth `get_rule_changes` tool (recent BIS/DDTC/OFAC rulemaking with the ECCNs/CFR parts each rule touches) now powers: a one-line radar brief on the `/exchek` dashboard, rule-aware re-verification in `exchek-classify`, and the delta-since-date mode of `exchek-audit-lookback`, which starts from the actual rulemaking record instead of memory.
+- **Team notes in classification** — `exchek-classify` pulls `get_regulatory_notes` for the ECCNs/parts under consideration and cites the team's pinned guidance as organizational context.
+- **Pipeline-stage sync everywhere** — `exchek-license`, `exchek-jurisdiction`, `exchek-export-docs`, and `exchek-red-flag-assessment` can now mirror their stage to the dashboard (same three gates: CUI, credentials, consent), so the Transactions pipeline fills in from whichever skill did the work.
+
+### Changed
+- **Donations removed everywhere** — the donation step, the multi-chain addresses, and every "optional donation" mention are gone from all skills, references, and the license. The post-workflow moment now belongs to the work: each skill closes by offering the logical next compliance step, with at most one quiet, dismissible Enterprise line for uncredentialed runs.
+- `ENTERPRISE.md` documents the full dashboard suite (Transactions, Screening Center, Products registry, Regulatory Radar, eCFR Workbench + notes, vault, Audit-Readiness Score, Team) included with every Enterprise account.
+- Stale links fixed: checkout now points at https://app.exchek.us; the ETHOS Enterprise link points at exchek.us/enterprise.
+
+### Fixed
+- `exchek-red-flag-assessment` no longer hardcodes a count/date for Supplement No. 3 to Part 732 — it instructs a live pull instead.
+
 ## [3.5.4] — 2026-06-11
 
 **The dashboard fills itself.** `exchek-classify` can now mirror compliance-pipeline *status* to the app.exchek.us Transactions page as it works — opt-in, metadata-only, and silent for free users.

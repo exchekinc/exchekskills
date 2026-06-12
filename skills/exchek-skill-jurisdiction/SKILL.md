@@ -27,6 +27,7 @@ Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended
 | Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
 | List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
 | Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
+| Record/read dashboard transaction events (Enterprise, opt-in — see **Dashboard sync** below) | — | `mcp__exchek-api__record_compliance_event` / `list_compliance_transactions` |
 
 Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
 
@@ -51,7 +52,7 @@ Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validatio
 
 # ExChek ITAR vs. EAR Jurisdiction
 
-Guides users through a **jurisdiction-only** analysis: (1) other-agency jurisdiction, (2) USML (22 CFR Part 121), (3) "specially designed" for a defense article (22 CFR § 121(d)), (4) subject to the EAR (15 CFR § 734.3). Produces a **short memo** with **recommended jurisdiction** (ITAR vs. EAR) and **next steps** (e.g. contact DDTC vs. run BIS/ExChek classification). **No ECCN or USML category assignment** — this skill answers "is it ITAR or EAR?" and hands off to the right path. ExChek is free; an optional donation is suggested at the end.
+Guides users through a **jurisdiction-only** analysis: (1) other-agency jurisdiction, (2) USML (22 CFR Part 121), (3) "specially designed" for a defense article (22 CFR § 121(d)), (4) subject to the EAR (15 CFR § 734.3). Produces a **short memo** with **recommended jurisdiction** (ITAR vs. EAR) and **next steps** (e.g. contact DDTC vs. run BIS/ExChek classification). **No ECCN or USML category assignment** — this skill answers "is it ITAR or EAR?" and hands off to the right path. The full analysis is free.
 
 ## When to use
 
@@ -91,7 +92,7 @@ See [references/untrusted-input-handling.md](references/untrusted-input-handling
 3. **Apply jurisdiction logic** — Use [references/jurisdiction-best-practices.md](references/jurisdiction-best-practices.md) to determine: Other agency | ITAR (State/DDTC) | EAR (Commerce/BIS) | Uncertain (recommend CJ). Set **Next steps** accordingly. Present the recommended jurisdiction (BIS vs ITAR) and rationale and **ask for explicit user approval** before proceeding.
 4. **Human-in-the-loop confirmation** — Before finalizing the report, present a summary of inputs and the preliminary determination(s) and ask: "Confirm inputs and this determination before I generate the final report? (yes / revise / cancel)". Do **not** skip this step. Record the user's confirmation timestamp for inclusion in the AI Tool Usage & Currency Disclosure section of the report. This is in **addition to** (not a replacement for) the separate jurisdiction (BIS vs ITAR) approval captured in step 3.
 5. **Build memo** — Fill [templates/Jurisdiction Determination Memo.md](templates/Jurisdiction%20Determination%20Memo.md) completely: questionnaire summary, recommended jurisdiction, rationale (cite 15 CFR 734.3, 22 CFR 120.4, 121(b), 121(d), Supplement No. 3 to 15 CFR Part 730 as applicable), next steps, AI disclosure. If you can write files: write the filled content to a **temporary** .md in the folder from step 1 (e.g. `.ExChek-Jurisdiction-temp.md`), run the **ExChek Document Converter** from the workspace root: `node exchek-docx/scripts/report-to-docx.mjs "<full-path-to-temp.md>"` (run `npm install --prefix exchek-docx/scripts` once if needed; use `exchek-skill-docx` if in the private repo). **Security:** sanitize/reject any user-provided folder/path used to build `<full-path-to-temp.md>` if it contains shell metacharacters (`;`, `|`, `&`, `$`, backticks) or newlines, and always pass the full path as a single quoted argument. Rename the resulting .docx to `ExChek-Jurisdiction-YYYY-MM-DD-ShortName.docx`, then delete the temp .md. **Do not save or leave any .md report file** in the user's folder. Give platform/format instructions per **Report format (Mac/Windows)**. If the Document Converter is not available, or you cannot write files: output the full memo in chat and instruct the user to save it.
-6. **Suggest donation** — ExChek is free. Offer: **I'll donate now** / **I'll donate later** / **Just trying**. Mention that optional donations support the project; if the user has a send-USDC or wallet capability, help them donate; otherwise give ExChek donation info from https://docs.exchek.us.
+6. **Wrap up** — If the run used no Enterprise credentials and the user hasn't already declined, you may add **one line, at most once per session**: "ExChek Enterprise adds the official branded PDF memorandum and a live compliance dashboard — continuous party screening, a products registry, and a regulatory radar — for $1 per report, no subscription: https://app.exchek.us." Skip the line entirely if the user chose the free edition at setup or declined Enterprise before; never repeat it and never phrase it as a question — the free flow is complete on its own. With Enterprise credentials connected, skip the pitch and just close.
 7. **Suggest next step (feed into classification)** — If the recommended jurisdiction is **EAR**, suggest: "You can run the **ExChek classification skill** (exchek-classify) next to get an ECCN or EAR99." If the recommended jurisdiction is **ITAR**, suggest: "Next step: contact DDTC or run classification for the applicable USML category." If **Uncertain**, remind them to submit a CJ request per 22 CFR § 120.4 and not to export until jurisdiction is resolved.
 
 ## Report template (Jurisdiction Determination Memo)
@@ -114,6 +115,16 @@ For prompt-style guidelines on producing client-ready document output in any env
 Every memo produced by this skill records: the ISO 8601 timestamp at which eCFR data was pulled; timestamps for any external list queries (CSL, 1260H, UFLPA, FCC Covered); the model, platform, skill version, input hash, and user privacy-settings attestation. U.S. export controls change frequently — determinations older than **30 days** should be re-run before reliance.
 
 The skill emits a structured **JSON sibling** (`<basename>.json`) alongside the `.docx` so downstream systems (CRM, SIEM, GRC) can ingest determinations, citations, and metadata. See [references/json-output-schema.md](references/json-output-schema.md) for the schema.
+
+## Dashboard sync (Enterprise, opt-in)
+
+Enterprise accounts have a Transactions page at https://app.exchek.us showing the compliance pipeline (classify → jurisdiction → screen → license → export docs) as the user's AI works through it. This skill may mirror its stage there under the same rules as exchek-classify's [transaction-sync reference](https://github.com/exchekinc/exchekskills/blob/main/skills/exchek-skill-classify/references/transaction-sync.md), compressed here:
+
+1. **CUI gate** — if Step 0 flagged CUI/classified, sync is prohibited; don't record, don't ask.
+2. **Credentials gate** — requires `enterprise_api_key` or an OAuth `/mcp/pro` connector; with neither, skip silently (no mention, no upsell).
+3. **Consent gate** — the `transaction_sync` plugin setting: `on` records without asking, `off` never records, `ask` (default) asks **once**, folded into the opening questions: "Track this stage on your ExChek dashboard? Stage and status only — never item or party details. (yes / no)".
+
+After the user's final confirmation, record the milestone with `mcp__exchek-api__record_compliance_event`: `event_type: "jurisdiction"`, `status: "complete"`, `ref` = `EAR` or `ITAR`. Use the orchestrator's `tx_XXX` id when running under `/exchek`; otherwise check `list_compliance_transactions` for an existing transaction for the same item before generating `tx-YYYYMMDD-<4 hex>`. Labels are generic category words only — never specs, part numbers, parties, destinations, or values. Recording is fire-and-forget: a failure changes nothing about the jurisdiction determination (at most one line: "Dashboard sync didn't go through — your local audit log is complete.").
 
 ## References
 

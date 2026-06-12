@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
   "displayName": "ExChek Export Compliance",
-  "version": "3.5.4",
-  "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, run audits, and produce audit-ready Word reports without hiring a consultant. Works in Cowork and Claude Code.",
+  "version": "3.6.0",
+  "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, track rule changes, run audits, and produce audit-ready Word reports without hiring a consultant. Free edition is complete on its own; the Enterprise edition adds official PDF memoranda and a live compliance dashboard (continuous screening, products registry, regulatory radar). Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
     "email": "matt@exchek.us",
@@ -89,8 +89,14 @@
     "enterprise_api_key": {
       "type": "string",
       "title": "ExChek Enterprise API key (optional)",
-      "description": "Unlocks the official branded classification-memorandum PDF ($1 per report, prepaid credits). Buy credits at https://api.exchek.us/enterprise/checkout — the key (exk_live_…) is shown once after payment. Leave empty to use only the free features; analysis, regulatory data, and the free Word report never require a key.",
+      "description": "Unlocks the official branded classification-memorandum PDF ($1 per report, prepaid credits). Sign in and buy credits at https://app.exchek.us — the key (exk_live_…) is shown once after purchase, or skip keys entirely with the OAuth connector (https://api.exchek.us/mcp/pro) on claude.ai/Claude Desktop. Leave empty to use only the free features; analysis, regulatory data, and the free Word report never require a key.",
       "default": ""
+    },
+    "edition": {
+      "type": "string",
+      "title": "Edition (free or enterprise)",
+      "description": "Which ExChek edition the skills should assume. 'ask' (default) = the setup skill asks once and records your answer; 'free' = skills never raise Enterprise features beyond a single one-line wrap-up mention (and you can turn even that off by telling the agent); 'enterprise' = skills default to offering the official PDF memorandum and dashboard sync. Analysis is identical in both editions — Enterprise adds deliverables and the live dashboard, never better answers.",
+      "default": "ask"
     },
     "transaction_sync": {
       "type": "string",

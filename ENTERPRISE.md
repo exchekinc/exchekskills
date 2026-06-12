@@ -35,6 +35,27 @@ enterprise compliance program (or a regulator) expects to see.
 | **In-skill** | `exchek-classify` offers this as **Option 2** at report time; the free local Word report remains Option 1 and the default |
 | **Dashboard sync** | opt-in: `exchek-classify` can mirror pipeline *status* (stage/status/ECCN refs only — never item details) to your Transactions page via `record_compliance_event`; the dashboard reminds you to re-screen (90 days) and re-verify classifications (30 days) |
 
+### The compliance dashboard — included with every Enterprise account
+
+Buying credits creates your account at **https://app.exchek.us**, and the
+dashboard that comes with it is where Enterprise compounds:
+
+| Surface | What it does |
+|---|---|
+| **Transactions** | The compliance pipeline (classify → jurisdiction → screen → license → export docs) fills itself as your AI works, via opt-in metadata-only sync. A needs-attention queue flags stale screens (90 days), stale classifications (30 days), and missing stages — each with a ready-made prompt to hand back to your agent |
+| **Screening Center** | Parties your AI screens can be registered for **continuous monitoring** — re-screened weekly (daily for high-risk) against the Consolidated Screening List, with email alerts the moment a new match appears and a per-party evidence log for audits |
+| **Products registry** | Confirmed determinations are saved (generic label + ECCN only) so an item is **classified once and reused** — agents check `get_prior_classification` before re-deriving anything, with staleness flags after 30 days |
+| **Regulatory Radar** | Recent BIS/DDTC/OFAC rulemaking cross-referenced against *your* ECCNs, your team's pinned notes, and your monitored parties — plus alerts when a note's pinned CFR section is amended after the note was written |
+| **eCFR Workbench + notes** | Read and search the CFR, and pin your team's institutional guidance to citations; agents pull those notes into every analysis via `get_regulatory_notes` |
+| **Document vault** | Opt-in retention of rendered memoranda organized for 15 CFR 762 recordkeeping |
+| **Audit-Readiness Score** | A 0–100 heuristic across screening health, classification currency, pipeline completeness, and recordkeeping — each component links to the page that improves it |
+| **Team** | Share keys, parties, products, and notes with your organization; roles via your identity provider |
+
+Everything on the dashboard is fed by the same metadata-discipline tools the
+skills use — stage/status, generic labels, ECCNs — never item specifications,
+party details (except parties you explicitly register for monitoring), file
+contents, or analysis text.
+
 Only **successful** renders consume a credit. Failed validation (HTTP 400) and
 service errors are never charged. When credits run out, renders return HTTP
 402 with a purchase link; buy again to receive a new key, or email

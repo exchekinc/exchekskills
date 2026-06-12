@@ -81,7 +81,7 @@ ExChek also exists to bridge the gap between enforcement agencies and the busine
 
 If ExChek saves you time, share it. Tell a colleague. Install a skill for a client. The best thing you can do for ExChek is use it, give feedback, and help us make export compliance accessible to everyone.
 
-When your team is ready to go further — CRM and ERP integrations, automated screening pipelines, multi-user audit trails, dedicated support, and custom skill development — upgrade to **ExChek Enterprise**. Enterprise gives your compliance program the infrastructure to scale without scaling headcount. Learn more and get started at [https://enterprise.exchek.us](https://enterprise.exchek.us).
+When your team is ready to go further — CRM and ERP integrations, automated screening pipelines, multi-user audit trails, dedicated support, and custom skill development — upgrade to **ExChek Enterprise**. Enterprise gives your compliance program the infrastructure to scale without scaling headcount. Learn more and get started at [https://exchek.us/enterprise/](https://exchek.us/enterprise/) and [https://app.exchek.us](https://app.exchek.us).
 
 ---
 

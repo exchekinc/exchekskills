@@ -224,7 +224,7 @@ Each skill folder contains:
 
 ## Enterprise docs
 
-- [ENTERPRISE.md](ENTERPRISE.md) — **paid services**: the official classification-memorandum PDF ($1 per report, prepaid credits), how keys and billing work, what stays free
+- [ENTERPRISE.md](ENTERPRISE.md) — **paid services**: the official classification-memorandum PDF ($1 per report, prepaid credits, no subscription), the compliance dashboard at app.exchek.us (continuous party screening, products registry, regulatory radar, transaction pipeline, document vault), how keys and billing work, what stays free
 - [SECURITY.md](docs/SECURITY.md) — what the plugin can and cannot do on your machine, prompt-injection defenses, audit-log integrity
 - [TELEMETRY.md](docs/TELEMETRY.md) — opt-in only; ExChek never receives data
 - [DATA_STORAGE.md](docs/DATA_STORAGE.md) — where artifacts live, retention, encryption, wiping

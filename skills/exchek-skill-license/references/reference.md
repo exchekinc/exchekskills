@@ -46,8 +46,3 @@ Structure: each node can have `identifier`, `label`, `content`, `children`. Trav
 - [Commerce Country Chart (BIS)](https://www.bis.doc.gov/index.php/documents/regulation-docs/415-supplement-no-1-to-part-738-commerce-country-chart-file)
 - [License Exceptions (Part 740)](https://www.ecfr.gov/current/title-15/subtitle-B/chapter-VII/subchapter-C/part-740)
 
-## Donation
-
-ExChek is free. Optional donation addresses are in [references/donation.md](donation.md) (if present in this skill). Suggest the address for the chain that matches the user's or agent's pay abilities.
-
-Full docs: https://docs.exchek.us
