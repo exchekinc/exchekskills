@@ -2,6 +2,18 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.6.1] — 2026-06-12
+
+**See it before you pay for it.** The Enterprise PDF flow is now draft → review → finalize: watermarked previews are free and unlimited, and only the final render the user explicitly approves consumes a credit. Born from a real session where a first render charged before the user could catch a wrong CAGE attribution and a missing exhibit — that can't happen anymore.
+
+### Added
+- **Free draft previews** — `create_classification_pdf` accepts `draft: true` (REST: `POST /pdf/classification?draft=1`): every page watermarked "DRAFT — NOT FINAL", no credit consumed, nothing stored. The skill now REQUIRES a reviewed draft (document-control block, CAGE attribution, exhibits, parties, ECCN) and an explicit "finalize" approval before the paid render.
+- **One-hour download links** — every render response includes `https://api.exchek.us/pdf/dl/<token>`, so surfaces that can't accept PDF bytes in chat (claude.ai web) still deliver the document. Finals additionally land in the dashboard vault when document storage is on.
+- **Setup check** — `exchek-classify` now checks for `.exchek/state/setup-complete.json` on file-access surfaces and offers to run exchek-setup (engine config + edition choice) first; on web/connector surfaces the step-1 deliverable question is the edition moment.
+
+### Fixed
+- Stale checkout link in the render error table now points at https://app.exchek.us.
+
 ## [3.6.0] — 2026-06-12
 
 **One engine, two editions — and the dashboard talks back.** Donations are gone; ExChek now has a clean free/Enterprise split that every skill respects, and the skills plug into the full app.exchek.us workspace: products registry, continuous screening, regulatory radar, and pinned team notes.

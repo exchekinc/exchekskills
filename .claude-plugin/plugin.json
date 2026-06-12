@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "exchekskills",
   "displayName": "ExChek Export Compliance",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "ExChek for SMB manufacturers — 20 export-compliance skills + two regulatory-data MCP servers (a local-first one and the hosted ExChek API). Classify ECCNs, screen parties, check licenses, track rule changes, run audits, and produce audit-ready Word reports without hiring a consultant. Free edition is complete on its own; the Enterprise edition adds official PDF memoranda and a live compliance dashboard (continuous screening, products registry, regulatory radar). Works in Cowork and Claude Code.",
   "author": {
     "name": "ExChek, Inc.",
