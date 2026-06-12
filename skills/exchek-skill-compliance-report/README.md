@@ -21,7 +21,7 @@ Install into your agent's skills directory and invoke with triggers like:
 
 ## Free to use
 
-ExChek is free. Optional donations welcome — see `references/donation.md`.
+ExChek is free.
 
 ## Learn more
 

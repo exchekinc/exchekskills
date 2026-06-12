@@ -2,7 +2,7 @@
 
 Determine **EAR license requirements and license exceptions** for a given item (ECCN), destination, and end use. Walks through the Commerce Country Chart (15 CFR Part 738) and Part 740 exceptions (LVS, GBS, TMP, RPL, CIV, TSR, etc.) and produces a short, audit-ready license determination memo.
 
-**Why use it** — Answer "Do we need a license?" or "Can we use LVS/GBS/…?" with a BIS-audit-ready memo. Free to use; optional donation.
+**Why use it** — Answer "Do we need a license?" or "Can we use LVS/GBS/…?" with a BIS-audit-ready memo. Free to use.
 
 - **API**: https://api.exchek.us (GET /api/ecfr/774, /api/ecfr/738, /api/ecfr/740)
 - **Docs**: https://docs.exchek.us

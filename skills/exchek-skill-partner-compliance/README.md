@@ -6,6 +6,6 @@ Generate a **compliance requirements pack for distributors and partners** coveri
 
 **Inputs:** Supplier/company name, product mix (EAR/ITAR, ECCN bands or summary), channel type (distributor, reseller, OEM), which sections to include, and whether to include the optional flow-down annex.
 
-**Why use it:** Pushing compliance down the chain is a real need for channel-heavy and OEM-focused companies; this skill produces an auditable, distributable pack and optional contract-ready language. Free to use; optional donation.
+**Why use it:** Pushing compliance down the chain is a real need for channel-heavy and OEM-focused companies; this skill produces an auditable, distributable pack and optional contract-ready language. Free to use.
 
 **Docs:** https://docs.exchek.us

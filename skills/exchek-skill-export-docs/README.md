@@ -2,7 +2,7 @@
 
 Draft **export documentation** and **AES/EEI data elements** from shipment details plus classification and screening results. Produces: commercial invoice export block, packing list annotations, Shipper's Letter of Instruction (SLI) draft, and an AES/EEI data table. **Flags when AES filing is required vs exempt** and documents the reasoning. **Prep only** — does not perform actual AES filing.
 
-**Why use it** — Get 80% of export doc and AES prep done in your agent; BIS and Census audit-ready package. Free to use; optional donation.
+**Why use it** — Get 80% of export doc and AES prep done in your agent; BIS and Census audit-ready package. Free to use.
 
 - **No API key** required for this skill (no external APIs; uses rules and references).
 - **Docs**: https://docs.exchek.us

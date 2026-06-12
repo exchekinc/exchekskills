@@ -139,7 +139,14 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
 
    Then surface the configured source: call `mcp__exchek__regulatory_source` and tell the user the current `mode` (`ask` / `local` / `api`) and that they can change it in `/plugin config exchekskills` under **Regulatory data source** (default `ask` — choose per session, ExChek API recommended).
 
-   Also check: does `.exchek/config.json` have an `api_key` field? Free-tier users won't, and that's fine — skip this. Paid-tier users: validate it with `GET https://api.exchek.us/health` using `Authorization: Bearer {api_key}`.
+   **Choose your edition.** Read the `edition` plugin setting and `.exchek/config.json` → `edition`. If either is already `"free"` or `"enterprise"`, confirm it in one line and move on. Otherwise ask once, with the value story laid out plainly:
+
+   - **Free** — every skill, full classification/screening/license analysis, local audit-ready .docx reports, the local + hosted regulatory MCP servers. Everything stays on your machine. No account, no key, forever.
+   - **Enterprise — $1 per report, no subscription** — everything in Free, plus: the **official branded PDF memorandum** (the 21-page document a regulator expects to see), and your **live compliance dashboard** at https://app.exchek.us — transaction pipeline with needs-attention reminders, **continuous party screening** (weekly/daily re-screens with email alerts), a **products registry** (classify once, reuse forever), a **regulatory radar** cross-referenced against your ECCNs, document vault, and team sharing. Prepaid credits; sign in and buy at https://app.exchek.us.
+
+   Write the answer to `.exchek/config.json` as `"edition": "free" | "enterprise"`. **Both choices are respected everywhere:** free means skills never interrupt the flow with Enterprise asks (at most a single one-line mention at wrap-up, and the user can say "stop mentioning Enterprise" to end even that — record `"edition_pitch": "off"` in config); enterprise means skills default to offering the official PDF and the dashboard sync consent. The user can change editions anytime by re-running setup or editing the plugin config.
+
+   If they chose Enterprise: confirm credentials exist (the `enterprise_api_key` plugin setting, or the OAuth `https://api.exchek.us/mcp/pro` connector on claude.ai/Claude Desktop). Validate a key with `GET https://api.exchek.us/health` using `Authorization: Bearer {key}`. If they have neither yet, point them at https://app.exchek.us to sign in and buy credits — the key is shown once at purchase.
 
 5. **Step 4 — CRM/ERP connectors (paid tier, optional)** — Check whether the `exchek-connector` skill is installed. On the free public-skills plugin it is not. If it's missing, skip this step silently and continue to Step 5 — connector setup is a paid-tier feature.
 
@@ -242,7 +249,8 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    {
      "complete": true,
      "completed_at": "{ISO timestamp}",
-     "steps_completed": ["company_profile", "report_defaults", "api_connectivity", "connectors", "telemetry", "compliance_contacts", "first_compliance_run"],
+     "steps_completed": ["company_profile", "report_defaults", "api_connectivity", "edition", "connectors", "telemetry", "compliance_contacts", "first_compliance_run"],
+     "edition": "free | enterprise",
      "engine_version": "{from config or manifest}",
      "api_reachable": true/false,
      "cloud_telemetry": true/false,

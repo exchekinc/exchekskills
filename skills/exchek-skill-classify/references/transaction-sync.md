@@ -92,6 +92,25 @@ classify flow. An unscreened or unlicensed transaction showing `pending`/empty
 stages on the dashboard is the *point*: that's what drives the user's
 "needs attention" queue back into a new agent session.
 
+## Products registry (same gates, same discipline)
+
+The dashboard's companion is the **Products registry** at https://app.exchek.us
+(Products): the account's durable catalog of classified items, so an item is
+classified once and reused. Two tools, governed by the SAME three gates and
+label discipline as event sync — the step 1 consent question covers both:
+
+| Tool | When | What may be sent |
+|---|---|---|
+| `get_prior_classification` | At the START of a classification, before collecting full specs | A generic label or keyword (category words only) — it's a lookup, nothing is stored |
+| `record_product_classification` | After the user's FINAL approval (step 5) | `label` (generic, 80 chars), `eccn`, `jurisdiction` (`EAR`/`ITAR`), optional `doc_number` (the rendered memo's DOC number) |
+
+`record_product_classification` upserts by label (case-insensitive): re-running
+the same item updates its entry rather than duplicating it. Lookups return a
+`stale` flag for determinations older than 30 days — recommend re-verification
+(the free `get_rule_changes` tool shows whether recent rules touched that ECCN)
+rather than silent reuse. The registry follows the same label discipline as
+events: category words, never specs, part numbers, customers, or programs.
+
 ## Invocation
 
 Through the bundled hosted connection: `mcp__exchek-api__record_compliance_event`

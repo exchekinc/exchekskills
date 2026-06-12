@@ -276,6 +276,8 @@ Always recommend re-screening if the prior screening is older than 50% of the co
 
 ## Smart Suggested Actions
 
+**Regulatory radar brief (one line, free):** when assembling the dashboard, you may call `mcp__exchek-api__get_rule_changes` (free, no auth) with a small `limit` and add a single line under the dashboard — e.g. "📡 Radar: 2 BIS rules published this week touching 15 CFR 740/774 — say 'show rule changes' for the list." If any tracked transaction's ECCN appears in a recent rule's `eccns`, raise it to a suggested action ("Re-verify tx_004 — 5A002 was touched by a rule published 2026-06-09"). Enterprise accounts can see the full cross-referenced feed (their products, notes, and monitored parties) at https://app.exchek.us/radar. If the call fails, skip the line — never block the dashboard on it.
+
 The three suggested actions in the dashboard are not generic. They are computed from state, ranked by priority:
 
 | Priority | Condition | Suggested Action |
