@@ -26,6 +26,18 @@ classification flow.
    neither is present, **skip sync silently** — no mention, no upsell, no
    error. Free users should never learn this feature exists from a failure
    message.
+
+   **Re-evaluate this gate at every milestone, not just at step 1.** Users
+   connect the `/mcp/pro` connector mid-conversation (it's how the paid PDF
+   gets unlocked); a credentials check that ran once at the start would then
+   silently drop every event for the rest of the engagement — the user ends
+   the session believing their dashboard tracked the work when nothing
+   landed. The moment an authenticated connection appears, ask the consent
+   question once (gate 3), and on a yes **record the milestones already
+   passed** before continuing — the server replaces same-type events per
+   transaction, so late recording is safe and idempotent. A wrap-up is the
+   last chance to catch this: if credentials exist, consent is yes, and no
+   events were recorded this engagement, record the completed stages then.
 3. **Consent gate.** Check the `transaction_sync` plugin setting:
    - `"on"` — record without asking.
    - `"off"` — never record, never ask.

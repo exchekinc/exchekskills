@@ -2,6 +2,15 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.6.2] — 2026-06-12
+
+**Late connections still count.** The transaction-sync credentials gate is now re-evaluated at every milestone instead of once at flow start. A real session connected the `/mcp/pro` connector mid-conversation (to unlock the paid PDF) and ended with zero events on the dashboard — the start-of-flow check had silently disabled sync for the whole engagement.
+
+### Fixed
+- transaction-sync: when an authenticated connection appears mid-session, the skill asks the consent question at the next milestone and, on a yes, records the milestones already passed (the server replaces same-type events per transaction, so late recording is idempotent). Wrap-up acts as the final catch.
+- exchek-classify's render step explicitly handles the common case (connector added to unlock the PDF) by asking consent there and backfilling jurisdiction/classify/screen events.
+- The license/jurisdiction/export-docs/red-flag sync sections carry the same re-check rule.
+
 ## [3.6.1] — 2026-06-12
 
 **See it before you pay for it.** The Enterprise PDF flow is now draft → review → finalize: watermarked previews are free and unlimited, and only the final render the user explicitly approves consumes a credit. Born from a real session where a first render charged before the user could catch a wrong CAGE attribution and a missing exhibit — that can't happen anymore.
