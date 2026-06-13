@@ -2,6 +2,19 @@
 
 All notable changes to the **exchekskills** plugin. Follows [semver](https://semver.org).
 
+## [3.6.3] — 2026-06-13
+
+**Link-only PDF delivery.** A real Claude Desktop session showed the Enterprise PDF render failing at the protocol layer: the MCP response embedded the rendered PDF as a base64 `application/pdf` resource, and surfaces that reject a binary blob (Desktop misrenders it, claude.ai drops it, Claude Code has crashed on it) discarded the whole response — taking the download link down with it.
+
+### Fixed
+- The render API now delivers a **download link only** (in the response text and `structuredContent.download_url`); the PDF is never embedded in the MCP response. A rejected blob can no longer take the link with it, so every Claude surface gets a working delivery.
+- Skill guidance corrected to match: removed the wrong "Claude Desktop: decode the embedded resource" instruction. The download link is the universal delivery — on claude.ai/Desktop the user clicks it; on Claude Code/Cursor the agent fetches it to save the file (never re-rendering, which would charge a second credit). The "PDF bytes as a base64 resource" dual-payload description is gone.
+- `SKILL.md` Section 6 and `pdf-rendering.md` no longer disagree about Desktop.
+
+### Notes
+- Raw bytes remain available on the REST endpoint (`POST /pdf/classification`, `?draft=1` for previews) — unchanged.
+- The download link stays a transient 1-hour delivery copy; the dashboard vault remains the durable copy.
+
 ## [3.6.2] — 2026-06-12
 
 **Late connections still count.** The transaction-sync credentials gate is now re-evaluated at every milestone instead of once at flow start. A real session connected the `/mcp/pro` connector mid-conversation (to unlock the paid PDF) and ended with zero events on the dashboard — the start-of-flow check had silently disabled sync for the whole engagement.
