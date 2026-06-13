@@ -111,19 +111,24 @@ The render tool has two modes, and the order is not optional:
    error you could have caught at draft (that's a second charge the draft
    step exists to prevent).
 
-**Delivery.** Every render response (draft and final) includes a one-hour
-download link (`https://api.exchek.us/pdf/dl/<token>`) in the summary text,
-alongside the PDF bytes as a base64 `application/pdf` resource:
+**Delivery is by link — the PDF is never attached to the MCP response.** A
+binary PDF embedded in a tool result is unreliable on every Claude surface
+(Claude Desktop misrenders it, claude.ai drops it, Claude Code can crash on
+it), so the response carries a **one-hour download link only** — in the
+summary text and in `structuredContent.download_url`. There are no bytes to
+decode. Deliver by surface:
 
-- **File-writing surfaces (Claude Code, Cowork, Desktop, Cursor):** decode the
-  resource and save it — finals as
-  `ExChek-Memorandum-YYYY-MM-DD-ShortItemName.pdf` in the report folder,
-  drafts with a `-DRAFT` suffix. Delete draft files after finalization.
-- **claude.ai web chat:** the chat surface **cannot accept the PDF resource** —
-  do not try to attach it; give the user the download link instead and say it
-  expires in one hour. Final memoranda are additionally retained in their
-  dashboard vault (app.exchek.us → Documents) when document storage is on —
-  mention that as the durable copy.
+- **claude.ai web AND Claude Desktop (any MCP chat surface):** give the user
+  the download link to click. Do **not** try to attach, decode, or save bytes —
+  there are none. Tell them it expires in one hour. Final memoranda are also in
+  their dashboard vault (app.exchek.us → Documents) when document storage is on
+  — mention that as the durable copy.
+- **Claude Code / Cursor / Cowork (file-writing):** **fetch the download link**
+  and save the bytes — finals as `ExChek-Memorandum-YYYY-MM-DD-ShortItemName.pdf`
+  in the report folder, drafts with a `-DRAFT` suffix. The link serves the
+  already-rendered PDF for free; **never re-render to obtain the file** — a
+  second final render charges another credit. Delete draft files after
+  finalization.
 
 **REST equivalent** (any environment, or when the user runs it themselves):
 
