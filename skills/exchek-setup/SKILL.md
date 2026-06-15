@@ -231,7 +231,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    │  Risk Level: {risk level from step 8b}                      │
    │                                                             │
    │  Prepared by: {PRIMARY_ANALYST from config}                 │
-   │  AI Tool: {COMPANY_NAME} ExChek Engine v2.0.0               │
+   │  AI Tool: {COMPANY_NAME} ExChek Engine                      │
    │  Date: {today's date}                                       │
    │                                                             │
    │  This is a preview. Run /exchek classify for the full       │
@@ -265,7 +265,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    Your ExChek Engine is Armed
    ──────────────────────────────
 
-   {COMPANY_NAME} ExChek Engine v2.0.0
+   {COMPANY_NAME} ExChek Engine
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
    20 compliance skills, configured for {INDUSTRY}.

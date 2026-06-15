@@ -15,6 +15,7 @@ All notable changes to the **exchekskills** plugin. Follows [semver](https://sem
 - **MCP server version aligned** — `servers/exchek-mcp/index.mjs` `VERSION` + `package.json` bumped 3.6.0 → 3.6.3 to match the plugin (the 3.6.1–3.6.3 skill/hosted-API releases hadn't carried to the local server).
 - **Skill count corrected to 20** — the engine skills (`exchek-onboarding` description, `skill.yaml`, the skills-overview box, and `exchek-setup`'s "engine armed" panel) said "22 skills," the Enterprise count that includes the paid-tier `exchek-connector` + `exchek-updater`. The public plugin ships **20** (16 core + 4 engine); the onboarding skills-map now lists those two separately under "Enterprise add-ons (not bundled in this edition)" so the count matches the list.
 - **README install reconciled to the marketplace name** — `/plugin marketplace add exchekinc/exchekskills` then `/plugin install exchekskills@exchek` (marketplace `name` is `exchek`), matching the wiki.
+- **Stale `v2.0.0` removed from `exchek-setup`** — the "engine armed" and report-preview ASCII panels hardcoded "ExChek Engine v2.0.0" (the engine is 3.6.3). Dropped the hardcoded number so it can't drift; the authoritative, versioned disclosure already lives in the report's AI-disclosure block. (The hosted `api.exchek.us` API is separately and correctly v2.0.0 — unchanged.)
 
 ### Notes
 - Raw bytes remain available on the REST endpoint (`POST /pdf/classification`, `?draft=1` for previews) — unchanged.
