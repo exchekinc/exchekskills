@@ -13,7 +13,7 @@ the thinking.
 
 ### Official Classification Memorandum (PDF) — $1 per report
 
-The flagship Enterprise document: a branded, audit-ready **21-page
+The flagship Enterprise document: a branded, audit-ready **~28-page
 classification memorandum** with native pagination, document-control block,
 executive summary with risk posture, full Order-of-Review analysis (Steps 1–6
 including the "specially designed" catch/release), encryption/software

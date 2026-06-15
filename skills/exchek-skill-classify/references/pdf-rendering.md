@@ -1,6 +1,6 @@
 # Official PDF memorandum rendering (ExChek Enterprise)
 
-Renders the branded 21-page ExChek classification memorandum as a PDF. This is
+Renders the branded ~28-page ExChek classification memorandum as a PDF. This is
 the paid alternative (Option 2, $1 per report) to the free local .docx flow —
 the analysis itself is always free; only the finished, audit-ready PDF document
 is metered.
