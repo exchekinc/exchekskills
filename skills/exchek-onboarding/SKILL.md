@@ -116,7 +116,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
 3. **Overview mode** — If user requests overview first, display the skills map:
 
    ```
-   ExChek Engine — 22 Skills Overview
+   ExChek Engine — 20 Skills Overview
    ════════════════════════════════════
 
    CLASSIFY & SCREEN
@@ -143,11 +143,13 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    ENGINE
      exchek-setup             First-run setup wizard
      exchek-onboarding        This — your first hour
-     exchek-connector         CRM/ERP connector management   (paid tier)
-     exchek-updater           Engine update mechanism        (paid tier)
      exchek-orchestrator      The hub — /exchek command center
-     exchek-analytics         Usage stats and telemetry dashboard
+     exchek-analytics         Compliance posture & Audit-Readiness dashboard
      exchek-skill-docx        Export reports to branded Word .docx
+
+   ENTERPRISE ADD-ONS (not bundled in this edition)
+     exchek-connector         CRM/ERP connector management
+     exchek-updater           Engine update mechanism
    ```
 
    Ask: "Where would you like to start? Pick a skill, category, or say **'start the tour'** to go step by step."

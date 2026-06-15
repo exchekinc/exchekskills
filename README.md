@@ -35,8 +35,8 @@ Export compliance for the SMB manufacturer who doesn't have a compliance team. 2
 Add the ExChek marketplace, install, configure:
 
 ```
-/plugin marketplace add github:exchekinc/exchekskills
-/plugin install exchekskills
+/plugin marketplace add exchekinc/exchekskills
+/plugin install exchekskills@exchek
 /plugin config exchekskills
 ```
 
