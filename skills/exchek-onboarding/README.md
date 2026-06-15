@@ -1,6 +1,6 @@
 # exchek-onboarding
 
-Guided onboarding tour for your ExChek Engine. Walks through all 22 compliance skills with practical, industry-specific examples. Tracks your progress so you can resume across sessions.
+Guided onboarding tour for your ExChek Engine. Walks through all 20 compliance skills with practical, industry-specific examples. Tracks your progress so you can resume across sessions.
 
 ## Usage
 

@@ -268,7 +268,7 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    {COMPANY_NAME} ExChek Engine v2.0.0
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-   22 compliance skills, configured for {INDUSTRY}.
+   20 compliance skills, configured for {INDUSTRY}.
    Branded reports with {PREFIX}-EC prefix.
    {CRM_TYPE} integration {ready/available}.
 
