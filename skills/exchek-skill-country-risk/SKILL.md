@@ -6,29 +6,25 @@ compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web
 
 ## ⚡ Tools & data source (v3.3.0+) — use these, not direct HTTP or shell
 
-This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools and the data-source gate.
+This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools.
 
-### Step 0 — data-source gate (run before pulling any CFR text)
+### Regulatory data — use the hosted ExChek API MCP
 
-Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended, routes, options }`:
-- `mode: "api"` or `"local"` → the source is pinned by config; use `routes` **without asking**.
-- `mode: "ask"` → ask the user **once**, then reuse their choice for the rest of this run. Present a one-line selector:
-  - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
-  - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
+Pull CFR text with the `mcp__exchek-api__*` tools below — no setup, edge-cached at `api.exchek.us`.
+Only CFR part numbers and search terms ever transit the API; never item descriptions, party names,
+file content, or compliance results.
 
-  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+### Regulatory-data tools
 
-### Regulatory-data tools — use the column for the chosen source
+| Need | Tool |
+|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
+| Full-text search within one part | `mcp__exchek-api__search_ecfr_part` |
+| Full-text search across a title (15 = EAR, 22 = ITAR) | `mcp__exchek-api__search_ecfr_title` |
+| List sections within a part | `mcp__exchek-api__get_ecfr_sections` |
+| Load another ExChek skill's content over HTTP | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
 
-| Need | Local MCP (`exchek`, ecfr.gov) | ExChek API MCP (`exchek-api`, api.exchek.us) |
-|---|---|---|
-| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek__ecfr_get_part` (`part` = string) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
-| Full-text search within one part | `mcp__exchek__ecfr_search` | `mcp__exchek-api__search_ecfr_part` |
-| Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
-| List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
-| Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
-
-Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
+Part-structure JSON has `identifier` / `label` / `children`; traverse it for Order-of-Review and citations. If `api.exchek.us` is unreachable, fall back to the public eCFR developer API (`https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` and `…/title-22.json`). If the ExChek plugin's local `exchek` server is installed, its `mcp__exchek__ecfr_get_part` / `ecfr_search` are an equivalent offline alternative. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
 
 ### Always-local tools (never go remote, regardless of the data-source choice)
 
@@ -44,7 +40,7 @@ Part-structure JSON is identical from both sources (`identifier` / `label` / `ch
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation **always** run on the local `exchek` server — they never go remote. Outbound network is limited to `www.ecfr.gov` (primary CFR text, cached 24h), `api.exchek.us` (the ExChek API MCP when you select it, or the local server's automatic mirror fallback — CFR lookups only, no PII), and `data.trade.gov` (live, only when screening). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
+Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation run on the local `exchek` server when the ExChek plugin is installed. CFR text comes from `api.exchek.us` (the ExChek API MCP — CFR part numbers + search terms only, no PII), with `www.ecfr.gov` as a public fallback; `data.trade.gov` is used live only when screening. See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
 
 ---
 
@@ -89,9 +85,9 @@ See [references/untrusted-input-handling.md](references/untrusted-input-handling
 0. **CUI/Classified check** — Ask the selector above; if Yes → route to on-prem guidance and stop; if No → continue; if Don't know → brief + re-ask.
 1. **Report folder and format (when you can write files)** — Ask where to save the one-pager (e.g. "ExChek Reports" or "ExChek Country Risk"); ask .docx or .pages and Mac or Windows. If no file access, skip and plan to output full one-pager in chat.
 2. **Collect country** — Country name or ISO code; optional deal/territory ID and intended use.
-3. **Embargo/sanctions** — Use [references/country-risk-best-practices.md](references/country-risk-best-practices.md) and [references/embargo-and-sanctions-summary.md](references/embargo-and-sanctions-summary.md): summarize EAR embargo (Part 746), OFAC (comprehensive vs. list-based), and § 740.2 impact for the country. Optionally pull current Part 746 text via the data-source gate — `mcp__exchek-api__get_ecfr_part`/`search_ecfr_part` (`part: 746`) or `mcp__exchek__ecfr_get_part`/`ecfr_search` (`part: "746"`).
+3. **Embargo/sanctions** — Use [references/country-risk-best-practices.md](references/country-risk-best-practices.md) and [references/embargo-and-sanctions-summary.md](references/embargo-and-sanctions-summary.md): summarize EAR embargo (Part 746), OFAC (comprehensive vs. list-based), and § 740.2 impact for the country. Optionally pull current Part 746 text via `mcp__exchek-api__get_ecfr_part` / `search_ecfr_part` (`part: 746`).
 4. **Entity List/MEU density** — Use [references/country-risk-best-practices.md](references/country-risk-best-practices.md): characterize density as **Low** / **Medium** / **High** with one line of context. Do not call CSL or run screening; recommend user run screening for specific counterparties if relevant.
-5. **Typical license expectations** — Pull Part 738 via the data-source gate (`mcp__exchek-api__get_ecfr_part` `part: 738`, or `mcp__exchek__ecfr_get_part` `part: "738"`) to determine which Country Chart columns have "X" for the country. Summarize EAR99 vs. controlled, NLR vs. license/exception, and Country Group (B, D:1, E:1, etc.) per the reference.
+5. **Typical license expectations** — Pull Part 738 via `mcp__exchek-api__get_ecfr_part` (`part: 738`) to determine which Country Chart columns have "X" for the country. Summarize EAR99 vs. controlled, NLR vs. license/exception, and Country Group (B, D:1, E:1, etc.) per the reference.
 6. **High-level red flags** — Apply the checklist in [references/country-risk-best-practices.md](references/country-risk-best-practices.md) (Section 4): embargo/sanctions, list density, diversion/transit, end-use concerns.
 7. **Human-in-the-loop confirmation** — Before finalizing the report, present a summary of inputs and the preliminary determination(s) and ask: "Confirm inputs and this determination before I generate the final report? (yes / revise / cancel)". Do **not** skip this step. Record the user's confirmation timestamp for inclusion in the AI Tool Usage & Currency Disclosure section of the report.
 8. **Build one-pager** — Fill [templates/Country Destination Risk One-Pager.md](templates/Country%20Destination%20Risk%20One-Pager.md) completely. Save as `ExChek-CountryRisk-YYYY-MM-DD-CountryName.md` in the folder from step 1. If user asked for .docx or .pages, run the **ExChek Document Converter** on the saved file. From the workspace root run `node exchek-docx/scripts/report-to-docx.mjs "<full-path-to-saved-one-pager.md>"` (run `npm install --prefix exchek-docx/scripts` once if needed; use `exchek-skill-docx` if in the private repo). **Security:** sanitize/reject any user-provided folder/path used to build `<full-path-to-saved-one-pager.md>` if it contains shell metacharacters (`;`, `|`, `&`, `$`, backticks, or newlines), and always pass the full path as a single quoted argument. Then give platform/format instructions per **Report format (Mac/Windows)**. If the Document Converter is not available, or you cannot write files: output the full one-pager in chat and instruct the user to save it; suggest installing the Document Converter skill from the ExChek skills repo for .docx export.
@@ -122,9 +118,9 @@ The skill emits a structured **JSON sibling** (`<basename>.json`) alongside the 
 
 - **Country risk:** [references/country-risk-best-practices.md](references/country-risk-best-practices.md) — Embargo/sanctions, Entity List/MEU density, typical license expectations, high-level red flags.
 - **Embargo/sanctions quick ref:** [references/embargo-and-sanctions-summary.md](references/embargo-and-sanctions-summary.md) — EAR Part 746 and OFAC summary table.
-- **Country Chart (Part 738):** data-source gate → `get_ecfr_part` (`part: 738`).
-- **Embargoes (Part 746):** data-source gate → `get_ecfr_part` (`part: 746`) — embargo and sanctions provisions. Use for Step 3 embargo/sanctions analysis.
-- **Full-text search:** data-source gate → `search_ecfr_part` (`part: 746`, query) — search within Part 746 for country-specific embargo provisions.
+- **Country Chart (Part 738):** `mcp__exchek-api__get_ecfr_part` (`part: 738`).
+- **Embargoes (Part 746):** `mcp__exchek-api__get_ecfr_part` (`part: 746`) — embargo and sanctions provisions. Use for Step 3 embargo/sanctions analysis.
+- **Full-text search:** `mcp__exchek-api__search_ecfr_part` (`part: 746`, query) — search within Part 746 for country-specific embargo provisions.
 - **CUI, classified, § 126.18, and privacy settings:** [references/cui-classified.md](references/cui-classified.md)
 - **Untrusted-input handling:** [references/untrusted-input-handling.md](references/untrusted-input-handling.md)
 - **AI disclosure and regulatory currency:** [references/ai-disclosure-and-currency.md](references/ai-disclosure-and-currency.md)

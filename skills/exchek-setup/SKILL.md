@@ -6,29 +6,25 @@ compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web, Cursor
 
 ## ⚡ Tools & data source (v3.3.0+) — use these, not direct HTTP or shell
 
-This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools and the data-source gate.
+This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools.
 
-### Step 0 — data-source gate (run before pulling any CFR text)
+### Regulatory data — use the hosted ExChek API MCP
 
-Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended, routes, options }`:
-- `mode: "api"` or `"local"` → the source is pinned by config; use `routes` **without asking**.
-- `mode: "ask"` → ask the user **once**, then reuse their choice for the rest of this run. Present a one-line selector:
-  - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
-  - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
+Pull CFR text with the `mcp__exchek-api__*` tools below — no setup, edge-cached at `api.exchek.us`.
+Only CFR part numbers and search terms ever transit the API; never item descriptions, party names,
+file content, or compliance results.
 
-  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+### Regulatory-data tools
 
-### Regulatory-data tools — use the column for the chosen source
+| Need | Tool |
+|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
+| Full-text search within one part | `mcp__exchek-api__search_ecfr_part` |
+| Full-text search across a title (15 = EAR, 22 = ITAR) | `mcp__exchek-api__search_ecfr_title` |
+| List sections within a part | `mcp__exchek-api__get_ecfr_sections` |
+| Load another ExChek skill's content over HTTP | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
 
-| Need | Local MCP (`exchek`, ecfr.gov) | ExChek API MCP (`exchek-api`, api.exchek.us) |
-|---|---|---|
-| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek__ecfr_get_part` (`part` = string) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
-| Full-text search within one part | `mcp__exchek__ecfr_search` | `mcp__exchek-api__search_ecfr_part` |
-| Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
-| List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
-| Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
-
-Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
+Part-structure JSON has `identifier` / `label` / `children`; traverse it for Order-of-Review and citations. If `api.exchek.us` is unreachable, fall back to the public eCFR developer API (`https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` and `…/title-22.json`). If the ExChek plugin's local `exchek` server is installed, its `mcp__exchek__ecfr_get_part` / `ecfr_search` are an equivalent offline alternative. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
 
 ### Always-local tools (never go remote, regardless of the data-source choice)
 
@@ -44,7 +40,7 @@ Part-structure JSON is identical from both sources (`identifier` / `label` / `ch
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation **always** run on the local `exchek` server — they never go remote. Outbound network is limited to `www.ecfr.gov` (primary CFR text, cached 24h), `api.exchek.us` (the ExChek API MCP when you select it, or the local server's automatic mirror fallback — CFR lookups only, no PII), and `data.trade.gov` (live, only when screening). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
+Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation run on the local `exchek` server when the ExChek plugin is installed. CFR text comes from `api.exchek.us` (the ExChek API MCP — CFR part numbers + search terms only, no PII), with `www.ecfr.gov` as a public fallback; `data.trade.gov` is used live only when screening. See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
 
 ---
 
@@ -130,14 +126,12 @@ At the start, ask: "Does your work involve **Controlled Unclassified Information
    - If **No** or **Edit**: Accept corrections and write them back to `.exchek/config.json`. Confirm the update.
    - Note: these values auto-populate into every compliance report, memo, and document the engine generates. Getting them right now saves time on every future report.
 
-4. **Step 3 — Test the ExChek API MCP** — The hosted ExChek API MCP (`exchek-api` → `https://api.exchek.us/mcp`) is one of the plugin's two regulatory-data sources. The other is the local-first `exchek` MCP, which reads `ecfr.gov` directly and automatically falls back to this same API if ecfr.gov is unreachable. The API has no auth requirement on the free tier.
+4. **Step 3 — Test the ExChek API MCP** — The hosted ExChek API MCP (`exchek-api` → `https://api.exchek.us/mcp`) is the plugin's regulatory-data source for CFR text. The public eCFR developer API (`www.ecfr.gov`) is a fallback, and — if the local-first `exchek` MCP is installed — it provides an equivalent offline alternative. The API has no auth requirement on the free tier.
 
    Probe reachability by calling `mcp__exchek-api__list_skills` (or `GET https://api.exchek.us/health`).
 
    - If it returns skills / `{ "status": "ok", ... }`: Report "ExChek API MCP: Connected."
-   - If the call fails or returns an error: Report "ExChek API MCP: Not reachable right now. The local MCP will still work against ecfr.gov directly — pick **Local MCP** at the data-source gate. You can re-test later at https://api.exchek.us/health."
-
-   Then surface the configured source: call `mcp__exchek__regulatory_source` and tell the user the current `mode` (`ask` / `local` / `api`) and that they can change it in `/plugin config exchekskills` under **Regulatory data source** (default `ask` — choose per session, ExChek API recommended).
+   - If the call fails or returns an error: Report "ExChek API MCP: Not reachable right now. CFR lookups will fall back to the public eCFR developer API at www.ecfr.gov (or the local `exchek` MCP if installed). You can re-test later at https://api.exchek.us/health."
 
    **Choose your edition.** Read the `edition` plugin setting and `.exchek/config.json` → `edition`. If either is already `"free"` or `"enterprise"`, confirm it in one line and move on. Otherwise ask once, with the value story laid out plainly:
 
