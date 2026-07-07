@@ -1,9 +1,10 @@
 # Data sources — Local MCP vs ExChek API MCP
 
-ExChek pulls live U.S. regulatory text (the EAR in 15 CFR and the ITAR in 22 CFR) from one of
-**two interchangeable MCP servers**. Both return the identical eCFR structure, so your
-classification, license, and jurisdiction reasoning is the same either way — only *where the bytes
-come from* changes. You choose at a one-time **data-source gate**, or pin a default in plugin config.
+ExChek pulls live U.S. regulatory text (the EAR in 15 CFR and the ITAR in 22 CFR). **By default the
+skills use the hosted ExChek API MCP** (`exchek-api`) — no setup, edge-cached at `api.exchek.us`.
+An optional **local MCP** (`exchek`) is also supported if you prefer to pull CFR text on-machine.
+Both return the identical eCFR structure, so your classification, license, and jurisdiction reasoning
+is the same either way — only *where the bytes come from* changes.
 
 ## The two sources
 
@@ -40,8 +41,8 @@ So the full outbound picture is:
 
 | Host | When | Carries |
 |---|---|---|
-| `www.ecfr.gov` | Local MCP pulls CFR text (primary) | The part number you're reading. No PII. |
-| `api.exchek.us` | You select the ExChek API MCP, **or** the local MCP's auto-fallback fires | CFR part numbers + search terms only. No PII. |
+| `www.ecfr.gov` | Optional local MCP pulls CFR text | The part number you're reading. No PII. |
+| `api.exchek.us` | Default CFR text source, **or** the local MCP's auto-fallback fires | CFR part numbers + search terms only. No PII. |
 | `api.exchek.us` (Enterprise, opt-in) | You render an official PDF, or approve dashboard transaction sync | Memo variables (rendered statelessly, discarded) / pipeline stage + status + short refs. Both individually consented; never CUI. |
 | `data.trade.gov` | You screen a party (CSL), any source | The party name/terms you screen. Required to screen. |
 
@@ -51,21 +52,18 @@ So the full outbound picture is:
 
 ## Choosing a source
 
-### The gate
-By default, the first time a skill needs CFR text it asks you once:
+### Default — the hosted ExChek API MCP
+Out of the box, skills pull CFR text with the `mcp__exchek-api__*` tools against `api.exchek.us`.
+There is no prompt and no gate step to run first — the hosted source is used automatically. Only CFR
+part numbers and search terms ever transit the API; never item descriptions, party names, file content,
+or compliance results.
 
-> **How should I pull regulatory data?**
-> **ExChek API MCP (recommended)** — fast, edge-cached at api.exchek.us · **Local MCP** — direct from ecfr.gov, cached on your machine
-
-Your answer is reused for the rest of that run. Behind the scenes a skill calls
-`mcp__exchek__regulatory_source` to learn the policy, then routes to the right tool.
-
-### Pinning a default
-Set **Regulatory data source** in `/plugin config exchekskills` (the `regulatory_source` option):
-
-- `ask` *(default)* — show the gate, ExChek API recommended.
-- `api` — always use the ExChek API MCP, no prompt.
-- `local` — always use the local MCP, no prompt.
+### Optional — the local MCP
+If you prefer to keep CFR pulls on-machine, install the local `exchek` server and use its
+`mcp__exchek__ecfr_get_part` / `ecfr_search` tools instead. This is an equivalent offline alternative;
+it returns the same eCFR structure. You can pin it as the default with the `regulatory_source: local`
+option in `/plugin config exchekskills`, or set `regulatory_source: api` to be explicit about the
+hosted default.
 
 ## Tool routing
 

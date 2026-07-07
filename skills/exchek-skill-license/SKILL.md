@@ -6,30 +6,26 @@ compatibility: Claude Code, Claude desktop, Claude CoWork, Claude web
 
 ## ⚡ Tools & data source (v3.3.0+) — use these, not direct HTTP or shell
 
-This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools and the data-source gate.
+This plugin bundles **two MCP servers**: a local-first one (`exchek`, a stdio child process) and the hosted **ExChek API MCP** (`exchek-api` → `https://api.exchek.us/mcp`, Streamable HTTP). When this skill is invoked, the tools below are available. **Use them.** Do not build `curl`/HTTP requests and do not spawn `node …/report-to-docx.mjs` directly — anything in the body below that shows a `GET https://api.exchek.us/...` call or a shell command is **legacy documentation only**; the canonical, audit-logged, sanitized implementation is via these MCP tools.
 
-### Step 0 — data-source gate (run before pulling any CFR text)
+### Regulatory data — use the hosted ExChek API MCP
 
-Call **`mcp__exchek__regulatory_source`** first. It returns `{ mode, recommended, routes, options }`:
-- `mode: "api"` or `"local"` → the source is pinned by config; use `routes` **without asking**.
-- `mode: "ask"` → ask the user **once**, then reuse their choice for the rest of this run. Present a one-line selector:
-  - **ExChek API MCP (recommended)** — fast, Cloudflare edge-cached at `api.exchek.us`; no local Node or ecfr.gov dependency.
-  - **Local MCP** — pulls straight from `www.ecfr.gov`, cached on your machine.
+Pull CFR text with the `mcp__exchek-api__*` tools below — no setup, edge-cached at `api.exchek.us`.
+Only CFR part numbers and search terms ever transit the API; never item descriptions, party names,
+file content, or compliance results.
 
-  Then use `options.api` or `options.local` accordingly. **Only CFR part numbers and search terms ever transit the ExChek API — never item descriptions, party names, file content, or compliance results.** If the skill never pulls CFR text (e.g. document conversion, analytics), skip the gate.
+### Regulatory-data tools
 
-### Regulatory-data tools — use the column for the chosen source
+| Need | Tool |
+|---|---|
+| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
+| Full-text search within one part | `mcp__exchek-api__search_ecfr_part` |
+| Full-text search across a title (15 = EAR, 22 = ITAR) | `mcp__exchek-api__search_ecfr_title` |
+| List sections within a part | `mcp__exchek-api__get_ecfr_sections` |
+| Load another ExChek skill's content over HTTP | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
+| Record/read dashboard transaction events (Enterprise, opt-in — see **Dashboard sync** below) | `mcp__exchek-api__record_compliance_event` / `list_compliance_transactions` |
 
-| Need | Local MCP (`exchek`, ecfr.gov) | ExChek API MCP (`exchek-api`, api.exchek.us) |
-|---|---|---|
-| Pull a CFR Part (774, 121, 738, 740, 742, 744, 746, 748, 762, 772, 734) | `mcp__exchek__ecfr_get_part` (`part` = string) | `mcp__exchek-api__get_ecfr_part` (`part` = integer) |
-| Full-text search within one part | `mcp__exchek__ecfr_search` | `mcp__exchek-api__search_ecfr_part` |
-| Full-text search across a title (15 = EAR, 22 = ITAR) | — (search the relevant part) | `mcp__exchek-api__search_ecfr_title` |
-| List sections within a part | — | `mcp__exchek-api__get_ecfr_sections` |
-| Load another ExChek skill's content over HTTP | — | `mcp__exchek-api__list_skills` / `get_skill` / `get_skill_bundle` |
-| Record/read dashboard transaction events (Enterprise, opt-in — see **Dashboard sync** below) | — | `mcp__exchek-api__record_compliance_event` / `list_compliance_transactions` |
-
-Part-structure JSON is identical from both sources (`identifier` / `label` / `children`), so Order-of-Review and citation logic is unchanged. The local server automatically falls back to the `api.exchek.us` mirror if ecfr.gov is unreachable and records which `source` it used. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
+Part-structure JSON has `identifier` / `label` / `children`; traverse it for Order-of-Review and citations. If `api.exchek.us` is unreachable, fall back to the public eCFR developer API (`https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json` and `…/title-22.json`). If the ExChek plugin's local `exchek` server is installed, its `mcp__exchek__ecfr_get_part` / `ecfr_search` are an equivalent offline alternative. The removed `/api/classify` and `/api/expert-review` endpoints are **not** used — classification is done in-skill from the CCL (774) and USML (121) data.
 
 ### Always-local tools (never go remote, regardless of the data-source choice)
 
@@ -45,7 +41,7 @@ Part-structure JSON is identical from both sources (`identifier` / `label` / `ch
 | Verify the audit log chain | `mcp__exchek__audit_verify` |
 | Convert filled markdown to `.docx` + `.json` sibling | `mcp__exchek__report_to_docx` |
 
-Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation **always** run on the local `exchek` server — they never go remote. Outbound network is limited to `www.ecfr.gov` (primary CFR text, cached 24h), `api.exchek.us` (the ExChek API MCP when you select it, or the local server's automatic mirror fallback — CFR lookups only, no PII), and `data.trade.gov` (live, only when screening). See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
+Screening (CSL), sanitization, the CUI gate, audit logging, disclosure validation, and report generation run on the local `exchek` server when the ExChek plugin is installed. CFR text comes from `api.exchek.us` (the ExChek API MCP — CFR part numbers + search terms only, no PII), with `www.ecfr.gov` as a public fallback; `data.trade.gov` is used live only when screening. See [docs/DATA_SOURCES.md](https://github.com/exchekinc/exchekskills/blob/main/docs/DATA_SOURCES.md).
 
 ---
 
@@ -62,12 +58,9 @@ Invoke this skill when the user asks whether a license is needed, which license 
 
 ## Regulatory data
 
-Obtain Part 774 (CCL), Part 738 (Country Chart), and Part 740 (License Exceptions) through the **data-source gate** (see the ⚡ Tools block above): call `mcp__exchek__regulatory_source`, then pull each part with the tool for the chosen source:
+Obtain Part 774 (CCL), Part 738 (Country Chart), and Part 740 (License Exceptions) with `mcp__exchek-api__get_ecfr_part` (`part: 774`, `738`, `740` — reasons for control; Commerce Country Chart; License Exceptions). See the ⚡ Tools block above for the routing table.
 
-- **ExChek API MCP (recommended):** `mcp__exchek-api__get_ecfr_part` with `part: 774`, `738`, `740` (reasons for control; Commerce Country Chart; License Exceptions).
-- **Local MCP:** `mcp__exchek__ecfr_get_part` with `part: "774"`, `"738"`, `"740"`.
-
-Both return the same structure; the local server falls back to the `api.exchek.us` mirror automatically if ecfr.gov is unreachable. See [references/reference.md](references/reference.md) for endpoint details and [references/license-exceptions.md](references/license-exceptions.md) for exception citations and when they cannot be used.
+If `api.exchek.us` is unreachable, fall back to the public eCFR developer API (`https://www.ecfr.gov/api/versioner/v1/structure/current/title-15.json`). See [references/reference.md](references/reference.md) for endpoint details and [references/license-exceptions.md](references/license-exceptions.md) for exception citations and when they cannot be used.
 
 ## License determination prompts
 
@@ -106,7 +99,7 @@ See [references/untrusted-input-handling.md](references/untrusted-input-handling
 0. **CUI/Classified check** — Ask the selector above; if Yes → route to on-prem guidance and stop; if No → continue; if Don't know → brief + re-ask.
 1. **Report folder and format (when you can write files)** — Ask where to save and .docx/.pages preference; store for later. If no file access, skip and plan to output in chat.
 2. **Collect inputs** — Item summary, ECCN (or EAR99), destination country, end user, end use. Optionally value/quantity for LVS. If the user has a prior classification report, accept ECCN from it.
-3. **Get regulatory data** — Run the data-source gate (`mcp__exchek__regulatory_source`), then retrieve Parts 774, 738, and 740 via the chosen source's tool (`mcp__exchek-api__get_ecfr_part` or `mcp__exchek__ecfr_get_part`). See the ⚡ Tools block above for the routing table.
+3. **Get regulatory data** — Retrieve Parts 774, 738, and 740 via `mcp__exchek-api__get_ecfr_part` (`part`: 774, then 738, then 740). See the ⚡ Tools block above for the routing table.
 4. **Determine license requirement** — Apply Country Chart for destination; list reasons for control; evaluate exceptions per § 740.2 and each exception's conditions. Conclude: license required or exception available (cite section).
 5. **Human-in-the-loop confirmation** — Before finalizing the report, present a summary of inputs and the preliminary determination(s) and ask: "Confirm inputs and this determination before I generate the final report? (yes / revise / cancel)". Do **not** skip this step. Record the user's confirmation timestamp for inclusion in the AI Tool Usage & Currency Disclosure section of the report. This HITL is in addition to any separate user approval of jurisdiction or ECCN classification that may have been required upstream.
 6. **Build the memo** — Fill [templates/License Determination Memo.md](templates/License%20Determination%20Memo.md) (all 6 sections). If you can write files: produce **only** a .docx (write filled content to temp .md → run ExChek Document Converter on it → rename .docx to `ExChek-License-YYYY-MM-DD-ShortName.docx` → delete temp .md). Do not save a .md file in the user's folder. Otherwise output full memo in chat.
